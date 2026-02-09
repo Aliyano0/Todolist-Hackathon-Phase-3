@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from contextlib import asynccontextmanager
 from typing import List
-from sqlmodel import Session
+from sqlmodel import Session, text
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -202,7 +202,7 @@ async def health_check(session: Session = Depends(get_session)):
     db_status = "disconnected"
     try:
         # Simple query to test database connection
-        session.exec("SELECT 1")
+        await session.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception as e:
         db_status = "error"
