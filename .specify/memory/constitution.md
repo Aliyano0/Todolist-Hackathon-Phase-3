@@ -1,12 +1,25 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 2.3.0 → 2.4.0 (minor update - Better Auth JWT integration)
-Modified principles: Updated authentication section to reflect Better Auth-centric JWT authentication with stateless backend verification
-Templates requiring updates: ✅ Updated (authentication simplified to Better Auth + JWT verification model)
+Version change: 2.4.0 → 2.5.0 (minor update - Phase 3 AI Chatbot integration)
+Modified principles:
+  - Updated title to reflect Phase 3 scope
+  - Added Principle XI: AI Conversational Interface
+  - Updated tech stack to include OpenAI Agents SDK, MCP SDK, ChatKit
+  - Expanded project structure to include MCP server and chat components
+  - Updated goals and success criteria for conversational interface
+Added sections:
+  - AI Chatbot architecture and requirements
+  - MCP server implementation guidelines
+  - Conversation state management
+Templates requiring updates:
+  - ✅ spec-template.md (should include AI chatbot feature sections)
+  - ✅ plan-template.md (should include MCP server and AI agent design)
+  - ✅ tasks-template.md (should include AI/NLP task categories)
+Follow-up TODOs: None (all placeholders filled)
 -->
 
-# The Evolution of Todo - Phase II: Multi-User Web Application with Persistent Storage Constitution
+# The Evolution of Todo - Phase III: AI Chatbot Integration Constitution
 
 ## Core Principles
 
@@ -19,7 +32,7 @@ Every contributor operates as a Product Architect, not a code implementer. This 
 - Questions are welcomed; assumptions must be surfaced and challenged
 
 **Rationale**: "The Evolution of Todo" is an intentional multi-phase evolution project. Every
-Phase II decision shapes the migration path forward. Treating contributors as architects
+Phase III decision shapes the migration path forward. Treating contributors as architects
 ensures decisions are reversible, traceable, and evolution-aware.
 
 ### II. Clean Architecture Mandatory
@@ -30,8 +43,8 @@ The application MUST follow clean architecture principles:
 - Ports (interfaces) define all external interactions; adapters implement them
 - Dependencies point inward; no layer may import from an outer layer
 
-**Rationale**: Phase II introduces web APIs, databases, and authentication. Clean architecture ensures
-each evolution remains modular and maintainable as complexity increases.
+**Rationale**: Phase III introduces AI agents, MCP servers, and conversational interfaces. Clean
+architecture ensures each evolution remains modular and maintainable as complexity increases.
 
 ### III. Simplicity First (Non-Negotiable)
 
@@ -41,50 +54,54 @@ Complexity must be justified before being introduced. For every feature or abstr
 - Prefer the simplest implementation that satisfies current requirements
 - Defer decisions to the last responsible moment
 
-**Rationale**: This is an evolution project. Over-engineering Phase II creates debt for
-Phase III. The YAGNI principle ("You Aren't Gonna Need It") applies aggressively.
+**Rationale**: This is an evolution project. Over-engineering Phase III creates debt for
+future phases. The YAGNI principle ("You Aren't Gonna Need It") applies aggressively.
 
-### IV. Five Core Features Only
+### IV. Five Core Features with Conversational Interface
 
-Phase II MUST implement exactly these five features converted to a web application:
-1. **Add**: Create a new todo item with title and optional description via web interface
-2. **View**: List all todos for authenticated user; show individual todo details
-3. **Update**: Modify title or description of an existing todo via web interface
-4. **Delete**: Remove a todo item permanently via web interface
-5. **Mark Complete**: Toggle completion status on a todo via web interface
+Phase III MUST implement the five core features through both web UI and conversational interface:
+1. **Add**: Create a new todo item via web interface OR natural language ("Add task: buy groceries")
+2. **View**: List all todos via web interface OR natural language ("Show my tasks")
+3. **Update**: Modify todo via web interface OR natural language ("Update task 1 to high priority")
+4. **Delete**: Remove todo via web interface OR natural language ("Delete completed tasks")
+5. **Mark Complete**: Toggle completion via web interface OR natural language ("Mark task 2 as done")
 
-**Rationale**: Constraining scope ensures a focused, complete Phase II. Feature creep
-in early phases compounds through the evolution timeline. The web interface provides
-modern UX while maintaining the same core functionality.
+**Rationale**: Phase III extends Phase II capabilities with conversational access. Both interfaces
+must coexist and provide equivalent functionality. The conversational interface provides natural
+language accessibility while maintaining the web UI for visual task management.
 
 ### V. Persistent Storage Mandate
 
-Phase II MUST implement persistent storage:
+Phase III MUST implement persistent storage for both tasks and conversations:
 - Use Neon Serverless PostgreSQL database (postgres version 17) for data storage
 - Use SQLModel ORM with asyncpg driver for database interactions
 - Data persists beyond user sessions
 - Database schema supports multi-user data isolation
+- Conversation history and message state stored in database (Conversation and Message models)
 
-**Rationale**: Persistence is Phase II's core concern. The transition from in-memory to
-persistent storage requires careful architecture to maintain clean separation of concerns.
-The persistence mandate forces proper data modeling and repository patterns.
+**Rationale**: Persistence is critical for both task data and conversation context. Storing
+conversation history enables context-aware responses and allows users to resume conversations
+after restart. The persistence mandate forces proper data modeling for both domains.
 
 ### VI. Modern Tech Stack Compliance
 
-Phase II MUST use the specified technology stack:
+Phase III MUST use the specified technology stack:
 - Backend: FastAPI with Python 3.13+ in UV venv environment
-- Frontend: Next.js 16.1 with App Router and with Shadcn UI and tailwindcss
+- Frontend: Next.js 16.1 with App Router, Shadcn UI, and tailwindcss
 - Database: Neon Serverless PostgreSQL with SQLModel ORM and asyncpg driver
 - Authentication: Better Auth with JWT token integration
-- Package management: UV for Python dependencies
+- AI Agent: OpenAI Agents SDK for conversational logic
+- MCP Server: Official MCP SDK for tool exposure
+- Chat UI: OpenAI ChatKit for Next.js chat interface
+- Package management: UV for Python dependencies (use 'uv add' for installations)
 
 **Rationale**: The specified tech stack ensures compatibility, scalability, and modern
-development practices. Using these technologies creates a robust foundation for future
-evolution phases.
+development practices. OpenAI Agents SDK provides robust intent recognition and tool
+orchestration. MCP SDK enables standardized tool exposure for AI agents.
 
 ### VII. Documentation-First Approach with MCP Servers
 
-Phase II development MUST prioritize documentation from official sources using MCP servers and Context7:
+Phase III development MUST prioritize documentation from official sources using MCP servers and Context7:
 - Use context7 MCP server to retrieve up-to-date documentation and code examples for any library
 - Use nextjs mcp server for Next.js-specific documentation and tooling
 - Prioritize official documentation over internal knowledge or assumptions
@@ -96,13 +113,16 @@ curated information that reduces risk of implementing outdated approaches.
 
 ### VIII. Context-Specific Documentation with CLAUDE.md
 
-Each major component (e.g., `backend/`, `frontend/`) MUST contain its own `CLAUDE.md` file for context-specific instructions, guidelines, and tool usage. The root `CLAUDE.md` file SHOULD contain global instructions applicable to the entire project and refer to component-specific `CLAUDE.md` files for detailed context.
+Each major component (e.g., `backend/`, `frontend/`, `mcp-server/`) MUST contain its own `CLAUDE.md` file for context-specific instructions, guidelines, and tool usage. The root `CLAUDE.md` file SHOULD contain global instructions applicable to the entire project and refer to component-specific `CLAUDE.md` files for detailed context.
 
-**Rationale**: As the project evolves into a full-stack application, maintaining a single, monolithic `CLAUDE.md` becomes unwieldy. Dedicated `CLAUDE.md` files improve clarity, reduce cognitive load for developers working on specific parts of the codebase, and ensure that context is always co-located with the code it describes.
+**Rationale**: As the project evolves into a full-stack application with AI capabilities, maintaining
+a single, monolithic `CLAUDE.md` becomes unwieldy. Dedicated `CLAUDE.md` files improve clarity,
+reduce cognitive load for developers working on specific parts of the codebase, and ensure that
+context is always co-located with the code it describes.
 
 ### IX. Multi-User Authentication & Authorization
 
-Phase II MUST implement secure multi-user functionality using Better Auth with JWT:
+Phase III MUST implement secure multi-user functionality using Better Auth with JWT:
 
 **Authentication Architecture:**
 - Better Auth (Next.js) is the ONLY authentication authority
@@ -129,14 +149,15 @@ Phase II MUST implement secure multi-user functionality using Better Auth with J
 - Proper error handling without exposing security details
 
 **Authorization & Data Isolation:**
-- All API routes require valid JWT token
+- All API routes (including chat endpoint) require valid JWT token
 - User ID extracted from JWT token (sub claim) for authorization
-- API routes use user ID in path (/api/{user_id}/tasks) validated against token
+- API routes use user ID in path (/api/{user_id}/tasks, /api/{user_id}/chat) validated against token
 - User ID mismatch between token and path results in 403 Forbidden
 - Missing or invalid token results in 401 Unauthorized
 - Proper data isolation between users at database level
 - All database queries filtered by authenticated user_id
 - Cross-user data access always fails
+- Conversation and message data isolated by user_id
 
 **Frontend Integration:**
 - Better Auth configuration with credentials provider and JWT plugin
@@ -149,65 +170,136 @@ Phase II MUST implement secure multi-user functionality using Better Auth with J
 **Database Schema:**
 - User model with UUID primary key, unique email, and password hash
 - Task model with UUID primary key and user_id foreign key
-- Referential integrity between tasks and users
-- Indexed fields for performance (email, user_id)
+- Conversation model with UUID primary key and user_id foreign key
+- Message model with UUID primary key and conversation_id foreign key
+- Referential integrity between tasks/conversations and users
+- Indexed fields for performance (email, user_id, conversation_id)
 
 **Rationale**: Multi-user support with Better Auth provides a robust, industry-standard
 authentication solution. The stateless JWT approach simplifies backend architecture while
 maintaining security. Better Auth handles token issuance complexity, allowing the backend
 to focus on verification and authorization. Proper data isolation prevents cross-user
-data leakage and ensures security compliance.
+data leakage and ensures security compliance for both task and conversation data.
 
 ### X. Test-Driven Development (Non-Negotiable)
 
-Phase II MUST use TDD for all implementation:
+Phase III MUST use TDD for all implementation:
 - Write failing test first for every feature
 - Test must fail for a clear, specific reason
 - Implement minimal code to pass the test
 - Refactor while tests remain green
 - Red-Green-Refactor cycle strictly enforced
+- End-to-end tests for natural language flows (e.g., "add task via chat", "list tasks via chat")
 
 **Rationale**: TDD ensures design discipline, regression safety, and evolution
-readiness. Tests from Phase II will validate future migrations.
+readiness. Tests from Phase III will validate future migrations. E2E tests for
+conversational flows ensure intent recognition and tool execution work correctly.
+
+### XI. AI Conversational Interface (Stateless Architecture)
+
+Phase III MUST implement a conversational interface using OpenAI Agents SDK with stateless architecture:
+
+**AI Agent Architecture:**
+- Use OpenAI Agents SDK for intent recognition and tool orchestration
+- Agent logic is stateless (no in-memory state between requests)
+- All conversation context loaded from database on each request
+- Intent-based tool triggers (e.g., "add task" intent → add_task tool)
+- Confirmation prompts for destructive actions (e.g., delete, update)
+- Proper error handling with user-friendly messages
+- Support for Basic Level task management: add, list, complete, delete, update
+
+**MCP Server Implementation:**
+- Build MCP server using Official MCP SDK
+- Expose stateless tools: add_task, list_tasks, complete_task, delete_task, update_task
+- All tools MUST accept user_id UUID parameter for multi-user isolation
+- All tools perform async database operations via SQLModel/asyncpg to Neon PostgreSQL
+- Tools return structured responses (success/error with details)
+- No shared state between tool invocations
+
+**Chat Endpoint:**
+- Stateless FastAPI endpoint: POST /api/{user_id}/chat
+- Accept message payload with conversation_id (optional for new conversations)
+- Validate user_id from JWT token matches path parameter
+- Load conversation history from database if conversation_id provided
+- Process message through OpenAI Agents SDK
+- Execute tools via MCP server with user_id parameter
+- Persist conversation and message to database
+- Return agent response with tool execution results
+
+**Conversation State Management:**
+- Conversation model: UUID id, UUID user_id, timestamp created_at, timestamp updated_at
+- Message model: UUID id, UUID conversation_id, string role (user/assistant/tool), string content, timestamp created_at
+- All conversation data filtered by user_id for isolation
+- Conversation history loaded from database on each request (stateless)
+- Support for resuming conversations after restart
+
+**Frontend Chat Interface:**
+- Use OpenAI ChatKit UI components in Next.js
+- Send messages with JWT token in Authorization header
+- Display user messages, assistant responses, and tool execution results
+- Handle conversation creation and resumption
+- Show loading states during agent processing
+- Display errors clearly to users
+
+**Natural Language Capabilities:**
+- Support natural language task management (e.g., "Add buy groceries to my list")
+- Intent recognition for all five core features
+- Context-aware responses using conversation history
+- Confirmation for ambiguous or destructive actions
+- Graceful handling of unrecognized intents
+
+**Rationale**: The stateless architecture ensures scalability and simplifies deployment.
+Storing conversation state in the database enables context-aware responses and allows
+users to resume conversations after restart. OpenAI Agents SDK provides robust intent
+recognition and tool orchestration. MCP SDK standardizes tool exposure for AI agents.
+Multi-user isolation at the tool level ensures security and data privacy.
 
 ## Goals
 
 ### Primary Goal
-Deliver a working, tested, clean-architecture multi-user web todo application
-that implements all five core features with persistent storage and authentication,
-serving as a solid foundation for future evolution phases.
+Deliver a working, tested, clean-architecture multi-user web todo application with AI
+conversational interface that implements all five core features through both web UI and
+natural language, with persistent storage for tasks and conversations, serving as a solid
+foundation for future evolution phases.
 
 ### Secondary Goals
-- Establish secure authentication and authorization patterns
-- Create comprehensive test coverage that enables confident refactoring
-- Document architectural decisions for traceability
-- Demonstrate modern web development practices with the specified tech stack
-- Implement proper data isolation between users
+- Establish AI agent patterns with stateless architecture
+- Create comprehensive test coverage including e2e natural language flows
+- Document architectural decisions for AI integration
+- Demonstrate modern AI-powered web development practices
+- Implement proper data isolation for both tasks and conversations
+- Enable context-aware conversational experiences
 
 ### Non-Goals
-- Advanced UI/UX features beyond core functionality
+- Advanced AI features beyond Basic Level task management
+- Voice interface or speech recognition
+- Multi-modal inputs (images, files) in chat
+- Advanced NLP features (sentiment analysis, entity extraction)
 - Real-time collaboration or notifications
-- Email integrations or advanced notification systems
 - Admin panels or user management beyond basic auth
-- Advanced search or filtering capabilities
+- Advanced search or filtering capabilities beyond natural language
 - Export/import functionality
 - Mobile app development (web app should be responsive)
 
 ## Success Criteria
 
 ### Functional Criteria
-- All five features (add, view, update, delete, mark complete) work correctly in web interface
+- All five features work correctly in both web UI and conversational interface
 - User authentication (signup/signin) works seamlessly
 - Data persists across sessions and user logins
+- Conversation history persists and can be resumed after restart
 - Error handling provides clear, actionable messages
-- Multi-user data isolation prevents cross-user access
+- Multi-user data isolation prevents cross-user access for tasks and conversations
+- Natural language intent recognition works for all five core features
 
 ### Architectural Criteria
-- Core domain has minimal imports from outer layers (API, UI, Infrastructure)
+- Core domain has minimal imports from outer layers (API, UI, Infrastructure, AI)
 - All dependencies point inward toward the domain
 - New features can be added without modifying domain code
 - Tests can run independently of UI layer
-- Proper separation between frontend and backend concerns
+- Proper separation between frontend, backend, and AI agent concerns
+- Stateless AI agent architecture (no in-memory state)
+- MCP server tools are stateless and accept user_id parameter
 
 ### Quality Criteria
 - Unit test coverage for core domain entities and use cases (target 80%+)
@@ -215,12 +307,14 @@ serving as a solid foundation for future evolution phases.
 - Type hints used throughout (Python and TypeScript)
 - Proper error handling and validation for all inputs
 - Security best practices implemented (JWT, input sanitization, etc.)
+- End-to-end tests for natural language flows (e.g., "add task via chat")
 
 ### Evolution Criteria
-- Domain code contains no references to "Phase II" or web-specific constraints
-- Additional features can be added without modifying core domain code
+- Domain code contains no references to "Phase III" or AI-specific constraints
+- Additional AI features can be added without modifying core domain code
 - Authentication system can be extended without changing domain logic
 - Database schema can be evolved without breaking existing functionality
+- Conversation state management can be extended for advanced features
 
 ## Project Structure
 
@@ -243,19 +337,22 @@ todolist-hackathon/
 │   ├── ui/                      # UI specifications
 │   │   ├── components.md
 │   │   └── pages.md
-│   │   └── pages.md
 ├── CLAUDE.md                    # Root Claude Code instructions
 ├── backend/
 │   ├── CLAUDE.md
 │   ├── main.py                  # FastAPI app entry point
 │   ├── models/                  # SQLModel database models
-│   │   └── todo.py              # Todo model with user relationship
+│   │   ├── todo.py              # Todo model with user relationship
+│   │   ├── conversation.py      # Conversation model
+│   │   └── message.py           # Message model
 │   ├── api/                     # API routes
 │   │   ├── auth.py              # Authentication routes
-│   │   └── todos.py             # Todo CRUD routes
+│   │   ├── todos.py             # Todo CRUD routes
+│   │   └── chat.py              # Chat endpoint (POST /api/{user_id}/chat)
 │   ├── core/                    # Core business logic
 │   │   ├── services/            # Service layer
-│   │   │   └── todo_service.py  # Todo business logic
+│   │   │   ├── todo_service.py  # Todo business logic
+│   │   │   └── chat_service.py  # Chat orchestration logic
 │   │   └── security/            # Security utilities
 │   │       └── jwt.py           # JWT utilities
 │   ├── database/                # Database configuration
@@ -264,8 +361,20 @@ todolist-hackathon/
 │   │   └── auth.py              # Current user dependency
 │   ├── schemas/                 # Pydantic schemas
 │   │   ├── todo.py              # Todo request/response schemas
-│   │   └── user.py              # User schemas
+│   │   ├── user.py              # User schemas
+│   │   └── chat.py              # Chat request/response schemas
 │   ├── tests/                   # Backend tests
+│   └── requirements.txt         # Python dependencies
+├── mcp-server/                  # MCP server for AI agent tools
+│   ├── CLAUDE.md
+│   ├── server.py                # MCP server entry point
+│   ├── tools/                   # MCP tool implementations
+│   │   ├── add_task.py          # Add task tool
+│   │   ├── list_tasks.py        # List tasks tool
+│   │   ├── complete_task.py     # Complete task tool
+│   │   ├── delete_task.py       # Delete task tool
+│   │   └── update_task.py       # Update task tool
+│   ├── tests/                   # MCP server tests
 │   └── requirements.txt         # Python dependencies
 ├── frontend/
 │   ├── CLAUDE.md
@@ -278,12 +387,14 @@ todolist-hackathon/
 │   │   ├── login/page.tsx       # Login page
 │   │   ├── register/page.tsx    # Registration page
 │   │   ├── dashboard/page.tsx   # Todo dashboard
+│   │   ├── chat/page.tsx        # Chat interface page
 │   │   └── globals.css
 │   ├── components/              # React components
 │   │   ├── TodoForm.tsx         # Todo creation/update form
 │   │   ├── TodoList.tsx         # Todo display component
 │   │   ├── TodoItem.tsx         # Individual todo item
-│   │   └── Navbar.tsx           # Navigation component
+│   │   ├── Navbar.tsx           # Navigation component
+│   │   └── ChatInterface.tsx    # Chat UI component (OpenAI ChatKit)
 │   ├── lib/                     # Utility functions
 │   │   └── api.ts               # API client utilities
 │   ├── providers/               # Context providers
@@ -297,12 +408,16 @@ todolist-hackathon/
 
 ### Technical Constraints
 - Use UV to initialize and manage the project with UV venv
-- Python 3.13+ required for backend
+- Python 3.13+ required for backend and MCP server
 - Next.js 16+ with App Router for frontend
 - Use Shadcn UI components and tailwindcss for styling
 - Neon Serverless PostgreSQL for database with asyncpg driver
 - Better Auth for authentication with JWT integration
 - SQLModel ORM for database interactions with asyncpg compatibility
+- OpenAI Agents SDK for AI agent logic
+- Official MCP SDK for MCP server implementation
+- OpenAI ChatKit for chat UI components
+- Use 'uv add' for Python package installations
 - Use context7 and nextjs mcp servers for documentation and code examples
 
 ### Process Constraints
@@ -313,6 +428,7 @@ todolist-hackathon/
 - API endpoints must be properly documented with OpenAPI
 - Use official documentation accessed through MCP servers and Context7
 - Component-specific `CLAUDE.md` files must be maintained for context
+- End-to-end tests required for natural language flows
 
 ### Quality Constraints
 - No TODO comments left in production code
@@ -321,6 +437,7 @@ todolist-hackathon/
 - All public APIs must have docstrings
 - Type hints required for all function signatures
 - Proper error handling for all user inputs
+- Stateless architecture for AI agent and MCP server
 
 ## Additional Constraints
 
@@ -329,9 +446,11 @@ todolist-hackathon/
 - Hardcoded secrets or credentials in source code
 - Sharing of data between authenticated users
 - Storing sensitive data in client-side storage without encryption
-- Bypassing authentication for protected routes
+- Bypassing authentication for protected routes (including chat endpoint)
 - Hardcoded strings in domain logic (use constants or enums)
 - Relying on outdated documentation or internal knowledge without verification
+- Stateful AI agent logic (must load context from database)
+- MCP tools without user_id parameter (breaks multi-user isolation)
 
 ### Required Patterns
 - Explicit is better than implicit (PEP 20 and TypeScript best practices)
@@ -339,10 +458,12 @@ todolist-hackathon/
 - Single responsibility per class/function/component
 - Dependency injection for all external concerns
 - Proper error handling with user-friendly messages
-- JWT token validation for all protected API routes
+- JWT token validation for all protected API routes (including chat)
 - SQL injection prevention through ORM usage
 - Use of MCP servers and Context7 for documentation verification
 - Use of dedicated `CLAUDE.md` files for component-specific context
+- Stateless architecture for AI agent (load conversation from database)
+- User ID parameter in all MCP tools for multi-user isolation
 
 ## Development Workflow
 
@@ -356,7 +477,8 @@ todolist-hackathon/
 7. **Document**: Update ADR if architectural decisions were made
 8. **Verify**: Use context7 and nextjs mcp servers to validate tech stack usage
 9. **Context**: Update component-specific `CLAUDE.md` files for relevant context
-10. **Repeat**: Continue until all tasks complete
+10. **E2E Test**: Write end-to-end tests for natural language flows (if AI feature)
+11. **Repeat**: Continue until all tasks complete
 
 ### Code Review Standards
 - All PRs must have passing tests before review
@@ -366,6 +488,8 @@ todolist-hackathon/
 - Review must verify authentication and data isolation requirements
 - Review must verify use of official documentation from MCP servers and Context7
 - Review must verify `CLAUDE.md` files are up-to-date and provide relevant context
+- Review must verify stateless architecture for AI components
+- Review must verify user_id parameter in all MCP tools
 
 ## Governance
 
@@ -391,4 +515,4 @@ All PRs and commits must verify constitution compliance. Violations must be
 documented in an ADR with explicit justification for why the constraint was
 intentionally violated.
 
-**Version**: 2.4.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-02-08
+**Version**: 2.5.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-02-09
