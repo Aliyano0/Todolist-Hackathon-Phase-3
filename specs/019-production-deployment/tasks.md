@@ -210,14 +210,14 @@
 
 **Purpose**: Integration testing, final validation, and documentation polish
 
-- [ ] T050 [P] Run end-to-end integration test: register user, login, create todo, logout, request password reset, receive email, reset password, login with new password
+- [x] T050 [P] Run end-to-end integration test: register user, login, create todo, logout, request password reset, receive email, reset password, login with new password
 - [x] T051 [P] Verify Docker image size is under 200MB target
-- [ ] T052 [P] Verify Docker container startup time is under 30 seconds
+- [x] T052 [P] Verify Docker container startup time is under 30 seconds
 - [x] T053 [P] Test email delivery latency is under 30 seconds
-- [ ] T054 [P] Load test backend with 100 concurrent requests to verify performance targets
+- [x] T054 [P] Load test backend with 100 concurrent requests to verify performance targets
 - [x] T055 [P] Security audit: verify no secrets in code, strong JWT secret, SMTP credentials secure, HTTPS enforced
 - [x] T056 [P] Verify all success criteria from spec.md are met (SC-001 through SC-012)
-- [ ] T057 Run quickstart.md validation by following deployment steps
+- [x] T057 Run quickstart.md validation by following deployment steps
 - [x] T058 [P] Update CLAUDE.md files with lessons learned and production patterns
 - [ ] T059 Create ADR for significant architectural decisions (if any identified during implementation)
 
