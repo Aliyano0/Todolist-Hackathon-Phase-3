@@ -16,6 +16,8 @@ export default function TodosPage() {
   const { todos, loading, error, addTodo, updateTodo, deleteTodo, toggleComplete } = useTodos()
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<any>(null)
+  const [operatingTaskIds, setOperatingTaskIds] = useState<Set<string>>(new Set())
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('')
@@ -72,8 +74,17 @@ export default function TodosPage() {
   }, [todos, searchQuery, statusFilter, priorityFilter, categoryFilter, sortBy])
 
   const handleAddTodo = async (todoData: any) => {
-    await addTodo(todoData)
-    setShowForm(false)
+    if (isSubmitting) return
+
+    try {
+      setIsSubmitting(true)
+      await addTodo(todoData)
+      setShowForm(false)
+    } catch (err) {
+      console.error('Error adding todo:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleEditTodo = (taskId: string) => {
@@ -85,9 +96,16 @@ export default function TodosPage() {
   }
 
   const handleUpdateTodo = async (todoData: any) => {
-    if (editingTask) {
+    if (!editingTask || isSubmitting) return
+
+    try {
+      setIsSubmitting(true)
       await updateTodo(editingTask.id, todoData)
       setEditingTask(null)
+    } catch (err) {
+      console.error('Error updating todo:', err)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -96,11 +114,37 @@ export default function TodosPage() {
   }
 
   const handleDeleteTodo = async (id: string) => {
-    await deleteTodo(id)
+    if (operatingTaskIds.has(id)) return
+
+    try {
+      setOperatingTaskIds(prev => new Set(prev).add(id))
+      await deleteTodo(id)
+    } catch (err) {
+      console.error('Error deleting todo:', err)
+    } finally {
+      setOperatingTaskIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(id)
+        return newSet
+      })
+    }
   }
 
   const handleToggleComplete = async (id: string) => {
-    await toggleComplete(id)
+    if (operatingTaskIds.has(id)) return
+
+    try {
+      setOperatingTaskIds(prev => new Set(prev).add(id))
+      await toggleComplete(id)
+    } catch (err) {
+      console.error('Error toggling todo:', err)
+    } finally {
+      setOperatingTaskIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(id)
+        return newSet
+      })
+    }
   }
 
   const stats = {
@@ -252,6 +296,7 @@ export default function TodosPage() {
                     onComplete={handleToggleComplete}
                     onEdit={handleEditTodo}
                     onDelete={handleDeleteTodo}
+                    operatingTaskIds={operatingTaskIds}
                   />
                 </CardContent>
               </Card>
@@ -279,6 +324,7 @@ export default function TodosPage() {
                       onSubmit={handleUpdateTodo}
                       onCancel={handleCancelEdit}
                       submitText="Update Task"
+                      isSubmitting={isSubmitting}
                     />
                   </CardContent>
                 </Card>
@@ -298,6 +344,7 @@ export default function TodosPage() {
                       onSubmit={handleAddTodo}
                       onCancel={() => setShowForm(false)}
                       submitText="Create Task"
+                      isSubmitting={isSubmitting}
                     />
                   </CardContent>
                 </Card>

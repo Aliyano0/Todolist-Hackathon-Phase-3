@@ -13,6 +13,7 @@ export interface TaskListProps {
   onComplete: (taskId: string) => void
   onEdit: (taskId: string) => void
   onDelete: (taskId: string) => void
+  operatingTaskIds?: Set<string>
   emptyMessage?: string
 }
 
@@ -23,6 +24,7 @@ export function TaskList({
   onComplete,
   onEdit,
   onDelete,
+  operatingTaskIds = new Set(),
   emptyMessage = 'No tasks yet. Create your first task to get started!'
 }: TaskListProps) {
   const shouldReduceMotion = useReducedMotion()
@@ -82,6 +84,7 @@ export function TaskList({
             onComplete={onComplete}
             onEdit={onEdit}
             onDelete={onDelete}
+            isOperating={operatingTaskIds.has(task.id)}
           />
         </motion.li>
       ))}

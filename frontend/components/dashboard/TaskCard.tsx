@@ -10,18 +10,31 @@ import { cn } from '@/lib/utils'
 
 // Helper function to format date and time
 function formatDateTime(dateString: string): string {
+  // Parse the date string - handle both ISO format with/without timezone
   const date = new Date(dateString)
-  const now = new Date()
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
 
-  // If less than 24 hours ago, show relative time
-  if (diffInHours < 1) {
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
-    if (diffInMinutes < 1) return 'Just now'
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid date'
+  }
+
+  const now = new Date()
+  const diffInMs = now.getTime() - date.getTime()
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
+
+  // If less than 1 minute ago
+  if (diffInMinutes < 1) {
+    return 'Just now'
+  }
+
+  // If less than 1 hour ago, show minutes
+  if (diffInMinutes < 60) {
     if (diffInMinutes === 1) return '1 minute ago'
     return `${diffInMinutes} minutes ago`
   }
 
+  // If less than 24 hours ago, show hours
   if (diffInHours < 24) {
     if (diffInHours === 1) return '1 hour ago'
     return `${diffInHours} hours ago`
@@ -57,6 +70,7 @@ export interface TaskCardProps {
   onEdit: (taskId: string) => void
   onDelete: (taskId: string) => void
   isEditing?: boolean
+  isOperating?: boolean
 }
 
 const priorityBorderClass = {
@@ -79,7 +93,8 @@ export function TaskCard({
   onComplete,
   onEdit,
   onDelete,
-  isEditing = false
+  isEditing = false,
+  isOperating = false
 }: TaskCardProps) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -105,11 +120,13 @@ export function TaskCard({
         <div className="flex items-start gap-3 flex-1">
           <button
             onClick={() => onComplete(task.id)}
+            disabled={isOperating}
             className={cn(
               'mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
               task.completed
                 ? 'bg-primary border-primary text-primary-foreground'
-                : 'border-muted-foreground hover:border-primary'
+                : 'border-muted-foreground hover:border-primary',
+              isOperating && 'opacity-50 cursor-not-allowed'
             )}
             aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
           >
@@ -146,14 +163,22 @@ export function TaskCard({
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(task.id)}
-              className="p-1.5 rounded hover:bg-muted transition-colors"
+              disabled={isOperating}
+              className={cn(
+                'p-1.5 rounded hover:bg-muted transition-colors',
+                isOperating && 'opacity-50 cursor-not-allowed'
+              )}
               aria-label={`Edit task: ${task.title}`}
             >
               <Pencil className="w-4 h-4 text-muted-foreground" />
             </button>
             <button
               onClick={() => onDelete(task.id)}
-              className="p-1.5 rounded hover:bg-destructive/10 transition-colors"
+              disabled={isOperating}
+              className={cn(
+                'p-1.5 rounded hover:bg-destructive/10 transition-colors',
+                isOperating && 'opacity-50 cursor-not-allowed'
+              )}
               aria-label={`Delete task: ${task.title}`}
             >
               <Trash2 className="w-4 h-4 text-destructive" />
