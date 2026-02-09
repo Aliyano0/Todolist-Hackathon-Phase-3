@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 220 13% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 10%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 14% 90%;
+    --secondary-foreground: 220 13% 10%;
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 13% 40%;
+    --accent: 220 14% 90%;
+    --accent-foreground: 220 13% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 85%;
+    --input: 220 13% 85%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 220 15% 8%;
+    --foreground: 220 14% 95%;
+    --card: 220 15% 12%;
+    --card-foreground: 220 14% 95%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 220 14% 95%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 14% 95%;
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 220 14% 95%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 220 13% 65%;
+    --accent: 220 13% 18%;
+    --accent-foreground: 220 14% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 220 14% 95%;
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 217 91% 60%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+/* Modern gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 14%, 96%, 1) 100%);
+}
+
+.dark .gradient-bg {
+  background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 15%, 8%, 1) 100%);
+}
+
+/* Glowing button effect */
+.glowing-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.glowing-button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glowing-button:hover::before {
+  opacity: 1;
+}
+
+/* Smooth animations */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}

@@ -1,0 +1,271 @@
+# API Contract: Todo Operations
+
+## Overview
+This document defines the API contract for todo operations in the enhanced todo application, including priority and category features.
+
+## Base URL
+`http://localhost:8000/api/v1`
+
+## Authentication
+All endpoints require a valid JWT token in the Authorization header:
+```
+Authorization: Bearer {jwt_token}
+```
+
+## Endpoints
+
+### Get All Todos
+```
+GET /todos
+```
+
+#### Request
+Headers:
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+Status: `200 OK`
+
+Body:
+```json
+{
+  "todos": [
+    {
+      "id": "uuid-string",
+      "title": "Sample task",
+      "description": "Description of the task",
+      "completed": false,
+      "priority": "high",
+      "category": "work",
+      "createdAt": "2026-02-02T10:00:00Z",
+      "updatedAt": "2026-02-02T10:00:00Z"
+    }
+  ]
+}
+```
+
+### Create Todo
+```
+POST /todos
+```
+
+#### Request
+Headers:
+```
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+Body:
+```json
+{
+  "title": "New task",
+  "description": "Description of the new task",
+  "priority": "medium",
+  "category": "personal"
+}
+```
+
+#### Response
+Status: `201 Created`
+
+Body:
+```json
+{
+  "id": "uuid-string",
+  "title": "New task",
+  "description": "Description of the new task",
+  "completed": false,
+  "priority": "medium",
+  "category": "personal",
+  "createdAt": "2026-02-02T10:00:00Z",
+  "updatedAt": "2026-02-02T10:00:00Z"
+}
+```
+
+### Update Todo
+```
+PUT /todos/{id}
+```
+
+#### Request
+Path Parameters:
+- `id` (string): The UUID of the todo item
+
+Headers:
+```
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+Body:
+```json
+{
+  "title": "Updated task title",
+  "description": "Updated description",
+  "priority": "low",
+  "category": "shopping",
+  "completed": true
+}
+```
+
+#### Response
+Status: `200 OK`
+
+Body:
+```json
+{
+  "id": "uuid-string",
+  "title": "Updated task title",
+  "description": "Updated description",
+  "completed": true,
+  "priority": "low",
+  "category": "shopping",
+  "createdAt": "2026-02-02T10:00:00Z",
+  "updatedAt": "2026-02-02T10:00:00Z"
+}
+```
+
+### Toggle Todo Completion
+```
+PATCH /todos/{id}/toggle-complete
+```
+
+#### Request
+Path Parameters:
+- `id` (string): The UUID of the todo item
+
+Headers:
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+Status: `200 OK`
+
+Body:
+```json
+{
+  "id": "uuid-string",
+  "completed": true
+}
+```
+
+### Delete Todo
+```
+DELETE /todos/{id}
+```
+
+#### Request
+Path Parameters:
+- `id` (string): The UUID of the todo item
+
+Headers:
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+Status: `204 No Content`
+
+### Get Available Categories
+```
+GET /categories
+```
+
+#### Request
+Headers:
+```
+Authorization: Bearer {jwt_token}
+```
+
+#### Response
+Status: `200 OK`
+
+Body:
+```json
+{
+  "categories": [
+    {
+      "name": "work",
+      "isCustom": false
+    },
+    {
+      "name": "personal",
+      "isCustom": false
+    },
+    {
+      "name": "shopping",
+      "isCustom": false
+    },
+    {
+      "name": "custom-category",
+      "isCustom": true
+    }
+  ]
+}
+```
+
+### Create Custom Category
+```
+POST /categories
+```
+
+#### Request
+Headers:
+```
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+Body:
+```json
+{
+  "name": "custom-category"
+}
+```
+
+#### Response
+Status: `201 Created`
+
+Body:
+```json
+{
+  "name": "custom-category",
+  "isCustom": true,
+  "createdAt": "2026-02-02T10:00:00Z"
+}
+```
+
+## Error Responses
+All endpoints may return the following error responses:
+
+### 400 Bad Request
+```json
+{
+  "detail": "Invalid request parameters or body"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "detail": "Authentication required"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "detail": "Resource not found"
+}
+```
+
+### 500 Internal Server Error
+```json
+{
+  "detail": "Internal server error occurred"
+}
+```

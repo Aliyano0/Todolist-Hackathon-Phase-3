@@ -1,0 +1,548 @@
+openapi: 3.0.3
+info:
+  title: Authentication API for Todo Application
+  description: API contracts for authentication and user resource ownership validation
+  version: 1.0.0
+  contact:
+    name: Auth System Team
+    email: team@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with email, name, and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User with email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      summary: Authenticate user
+      description: Authenticates user with email and password, returns JWT token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/todos/{user_id}/tasks:
+    post:
+      summary: Create a new task for a user
+      description: Creates a new task for the specified user with proper authorization
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user creating the task
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTodoRequest'
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: Task successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User does not have permission to create tasks for this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List all tasks for a user
+      description: Retrieves all tasks belonging to the specified user
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user whose tasks to retrieve
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user's tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoResponse'
+        '403':
+          description: User does not have permission to access this user's tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/todos/{user_id}/tasks/{id}:
+    get:
+      summary: Get a specific task
+      description: Retrieves details of a specific task for the specified user
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user who owns the task
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: ID of the task to retrieve
+          schema:
+            type: integer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+        '403':
+          description: User does not have permission to access this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update a specific task
+      description: Updates details of a specific task for the specified user
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user who owns the task
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: ID of the task to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTodoRequest'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Task successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+        '403':
+          description: User does not have permission to update this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a specific task
+      description: Deletes a specific task for the specified user
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user who owns the task
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: ID of the task to delete
+          schema:
+            type: integer
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Task successfully deleted
+        '403':
+          description: User does not have permission to delete this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/todos/{user_id}/tasks/{id}/complete:
+    patch:
+      summary: Toggle task completion status
+      description: Toggles the completion status of a specific task for the specified user
+      tags:
+        - Todos
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: ID of the user who owns the task
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: ID of the task to toggle
+          schema:
+            type: integer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Task completion status successfully toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+        '403':
+          description: User does not have permission to toggle this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's full name
+          example: John Doe
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$'
+          description: User's password (must include uppercase, lowercase, and number)
+          example: MySecurePassword123
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        password:
+          type: string
+          description: User's password
+          example: MySecurePassword123
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          enum: [bearer]
+          description: Type of token
+          example: bearer
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        expires_in:
+          type: integer
+          description: Number of seconds until token expires
+          example: 2592000
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        name:
+          type: string
+          description: User's full name
+          example: John Doe
+        is_active:
+          type: boolean
+          description: Whether the user account is active
+          example: true
+        email_verified:
+          type: boolean
+          description: Whether the user's email is verified
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: When the user account was created
+          example: '2023-01-01T00:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the user account was last updated
+          example: '2023-01-01T00:00:00Z'
+
+    CreateTodoRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Title of the todo item
+          example: Buy groceries
+        description:
+          type: string
+          description: Optional description of the todo item
+          example: Need to buy milk, eggs, and bread
+        completed:
+          type: boolean
+          description: Whether the todo is completed
+          example: false
+
+    UpdateTodoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Updated title of the todo item
+          example: Buy groceries
+        description:
+          type: string
+          description: Updated description of the todo item
+          example: Need to buy milk, eggs, bread, and fruit
+        completed:
+          type: boolean
+          description: Updated completion status
+          example: true
+
+    TodoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the todo
+          example: 1
+        title:
+          type: string
+          description: Title of the todo item
+          example: Buy groceries
+        description:
+          type: string
+          description: Description of the todo item
+          example: Need to buy milk, eggs, and bread
+        completed:
+          type: boolean
+          description: Whether the todo is completed
+          example: false
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who owns this todo
+          example: 123e4567-e89b-12d3-a456-426614174000
+        created_at:
+          type: string
+          format: date-time
+          description: When the todo was created
+          example: '2023-01-01T00:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the todo was last updated
+          example: '2023-01-01T00:00:00Z'
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: Something went wrong
+        error_code:
+          type: string
+          description: Error code for programmatic handling
+          example: INVALID_CREDENTIALS
+
+  parameters:
+    userId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique identifier of the user
+    taskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Unique identifier of the task

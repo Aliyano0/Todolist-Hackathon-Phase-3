@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+README.md
+CLAUDE.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Logs
+*.log
+logs/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Development tools
+.editorconfig
+.flake8
+.pylintrc
+mypy.ini
+setup.py
+setup.cfg
+pyproject.toml

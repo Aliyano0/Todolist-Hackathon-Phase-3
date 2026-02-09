@@ -1,0 +1,103 @@
+# API Contracts: Todo Application
+
+## Base URL
+`http://localhost:8000/api` (backend server)
+
+## Authentication
+Currently none (single-user implementation). Will implement JWT authentication in future phase.
+
+## Todo Operations
+
+### GET /todos
+**Description:** Retrieve all todos
+
+**Request:**
+- Method: GET
+- Headers: None required
+- Parameters: None
+
+**Response:**
+- Success: 200 OK
+- Content-Type: application/json
+- Body: `{ "data": [TodoItem] }`
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "id": "1",
+      "title": "Sample task",
+      "description": "Sample description",
+      "completed": false,
+      "createdAt": "2026-02-02T10:00:00Z",
+      "updatedAt": "2026-02-02T10:00:00Z",
+      "userId": "1"
+    }
+  ]
+}
+```
+
+### POST /todos
+**Description:** Create a new todo
+
+**Request:**
+- Method: POST
+- Headers: Content-Type: application/json
+- Body: `{ "title": string, "description": string, "completed": boolean }`
+
+**Response:**
+- Success: 201 Created
+- Content-Type: application/json
+- Body: `{ "data": TodoItem }`
+
+### GET /todos/{id}
+**Description:** Get a specific todo by ID
+
+**Request:**
+- Method: GET
+- Headers: None required
+- Parameters: id (path parameter)
+
+**Response:**
+- Success: 200 OK
+- Content-Type: application/json
+- Body: `{ "data": TodoItem }`
+
+### PUT /todos/{id}
+**Description:** Update a todo
+
+**Request:**
+- Method: PUT
+- Headers: Content-Type: application/json
+- Parameters: id (path parameter)
+- Body: `{ "title": string, "description": string, "completed": boolean }`
+
+**Response:**
+- Success: 200 OK
+- Content-Type: application/json
+- Body: `{ "data": TodoItem }`
+
+### DELETE /todos/{id}
+**Description:** Delete a todo
+
+**Request:**
+- Method: DELETE
+- Headers: None required
+- Parameters: id (path parameter)
+
+**Response:**
+- Success: 204 No Content
+
+### PATCH /todos/{id}/toggle
+**Description:** Toggle completion status of a todo
+
+**Request:**
+- Method: PATCH
+- Headers: None required
+- Parameters: id (path parameter)
+
+**Response:**
+- Success: 200 OK
+- Content-Type: application/json
+- Body: `{ "data": TodoItem }`

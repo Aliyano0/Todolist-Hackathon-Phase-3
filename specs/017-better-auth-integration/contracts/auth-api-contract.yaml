@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: Better Auth Integration API
+  description: API contract for authentication and user isolation
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                password:
+                  type: string
+                  minLength: 8
+                  pattern: "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).*$"
+                  description: User's password with minimum requirements
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid input or user already exists
+
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Authenticates user and returns JWT tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT access token
+                  refresh_token:
+                    type: string
+                    description: JWT refresh token
+                  token_type:
+                    type: string
+                    enum: [bearer]
+                  user_id:
+                    type: string
+                    format: uuid
+        '401':
+          description: Invalid credentials
+
+  /auth/verify-email:
+    post:
+      summary: Verify user email
+      description: Verifies user's email address using token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Email verification token
+      responses:
+        '200':
+          description: Email verified successfully
+        '400':
+          description: Invalid or expired token
+
+  /auth/forgot-password:
+    post:
+      summary: Initiate password reset
+      description: Sends password reset email to user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent
+        '404':
+          description: User not found
+
+  /auth/reset-password:
+    post:
+      summary: Reset user password
+      description: Resets user password using reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - new_password
+              properties:
+                token:
+                  type: string
+                  description: Password reset token
+                new_password:
+                  type: string
+                  minLength: 8
+                  pattern: "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).*$"
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Invalid or expired token
+
+  /api/{user_id}/tasks:
+    get:
+      summary: Get user's tasks
+      description: Retrieves all tasks belonging to the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+    post:
+      summary: Create a new task for user
+      description: Creates a new task for the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTodoItem'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+
+  /api/{user_id}/tasks/{task_id}:
+    get:
+      summary: Get a specific task
+      description: Retrieves a specific task for the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The task ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+        '404':
+          description: Task not found
+    put:
+      summary: Update a task
+      description: Updates a specific task for the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The task ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTodoItem'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+        '404':
+          description: Task not found
+    delete:
+      summary: Delete a task
+      description: Deletes a specific task for the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The task ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+        '404':
+          description: Task not found
+
+  /api/{user_id}/tasks/{task_id}/toggle:
+    patch:
+      summary: Toggle task completion status
+      description: Toggles the completion status of a specific task for the authenticated user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The authenticated user's ID
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The task ID
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Bearer token
+      responses:
+        '200':
+          description: Task completion status toggled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+        '401':
+          description: Unauthorized - invalid or missing token
+        '403':
+          description: Forbidden - user trying to access another user's data
+        '404':
+          description: Task not found
+
+components:
+  schemas:
+    TodoItem:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+        - user_id
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [high, medium, low]
+        category:
+          type: string
+          maxLength: 50
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTodoItem:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        priority:
+          type: string
+          enum: [high, medium, low]
+          default: medium
+        category:
+          type: string
+          maxLength: 50
+          default: personal
+
+    UpdateTodoItem:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [high, medium, low]
+        category:
+          type: string
+          maxLength: 50

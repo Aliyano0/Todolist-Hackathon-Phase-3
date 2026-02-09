@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Todo API Contract
+  description: API contract for Todo operations between frontend and backend
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+paths:
+  /todos:
+    get:
+      summary: Get all todos for current user
+      responses:
+        '200':
+          description: List of todos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TodoItem'
+    post:
+      summary: Create a new todo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "New todo item"
+                description:
+                  type: string
+                  example: "Description of the todo item"
+                completed:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Created todo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+  /todos/{id}:
+    get:
+      summary: Get a specific todo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Specific todo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+    put:
+      summary: Update a specific todo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated todo title"
+                description:
+                  type: string
+                  example: "Updated description"
+                completed:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Updated todo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+    delete:
+      summary: Delete a specific todo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /todos/{id}/toggle:
+    patch:
+      summary: Toggle completion status of a todo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated todo with toggled status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TodoItem'
+components:
+  schemas:
+    TodoItem:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the todo
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          description: Title of the todo item
+          example: "Buy groceries"
+        description:
+          type: string
+          description: Optional description of the todo item
+          example: "Milk, eggs, bread"
+        completed:
+          type: boolean
+          description: Completion status of the todo
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2023-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2023-01-01T00:00:00Z"
+        userId:
+          type: string
+          description: ID of the user who owns this todo
+          example: "user123"

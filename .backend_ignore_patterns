@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.DS_Store
+.pytest_cache/
+.hypothesis/
+.eggs/
+*.egg-info/
+*.egg
+.venv/
+venv/
+env/
+
+# Local config
+.env
+.env.local
+.env.dev
+.env.production
+.env.staging
+.env.test
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
