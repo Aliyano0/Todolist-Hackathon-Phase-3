@@ -118,6 +118,8 @@ The frontend UI upgrade has been successfully completed, transforming the Next.j
 - Staggered list animations
 - Stats cards (Total, Completed, Pending, High Priority)
 - Productivity insights sidebar
+- **Search & Filter**: Search by keyword, filter by status/priority/category, sort by date/priority/alphabetical
+- Filtered task count display (e.g., "5 of 10 tasks")
 
 ---
 
