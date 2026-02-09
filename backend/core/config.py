@@ -41,6 +41,23 @@ class SMTPConfig:
 
 
 @dataclass
+class SendGridConfig:
+    """SendGrid email service configuration"""
+    api_key: str
+    from_email: str
+    from_name: str
+
+    @classmethod
+    def from_env(cls) -> "SendGridConfig":
+        """Load SendGrid configuration from environment variables"""
+        return cls(
+            api_key=os.getenv("SENDGRID_API_KEY", ""),
+            from_email=os.getenv("SENDGRID_FROM_EMAIL", os.getenv("SMTP_FROM_EMAIL", "")),
+            from_name=os.getenv("SENDGRID_FROM_NAME", "Todo App"),
+        )
+
+
+@dataclass
 class AppConfig:
     """Application configuration for production"""
     environment: str
@@ -52,8 +69,10 @@ class AppConfig:
     jwt_algorithm: str
     jwt_expiry_days: int
 
-    # Email configuration
+    # Email configuration (SMTP or SendGrid)
     smtp: SMTPConfig
+    sendgrid: SendGridConfig
+    email_provider: str  # "smtp" or "sendgrid"
 
     # Security settings
     allowed_origins: list[str]
@@ -70,6 +89,9 @@ class AppConfig:
         environment = os.getenv("ENVIRONMENT", "development")
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+        # Determine email provider (prefer SendGrid for production)
+        email_provider = os.getenv("EMAIL_PROVIDER", "sendgrid" if os.getenv("SENDGRID_API_KEY") else "smtp")
+
         return cls(
             environment=environment,
             debug=environment == "development",
@@ -80,6 +102,8 @@ class AppConfig:
             jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
             jwt_expiry_days=int(os.getenv("JWT_EXPIRY_DAYS", "7")),
             smtp=SMTPConfig.from_env(),
+            sendgrid=SendGridConfig.from_env(),
+            email_provider=email_provider,
             allowed_origins=[frontend_url],
             rate_limit_enabled=os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true",
             rate_limit_per_minute=int(os.getenv("RATE_LIMIT_PER_MINUTE", "60")),

@@ -43,6 +43,8 @@ from core.services.todo_service import (
 )
 from core.config import get_config, init_config
 from core.services.email_service import SMTPEmailService, EmailService
+from core.services.sendgrid_email_service import SendGridEmailService
+from core.services.sendgrid_email_service import SendGridEmailService
 
 # Global email service instance
 _email_service: EmailService = None
@@ -65,16 +67,34 @@ def get_email_service() -> EmailService:
 
 def init_email_service():
     """
-    Initialize the email service with SMTP configuration
+    Initialize the email service (SendGrid or SMTP)
+
+    Priority:
+    1. SendGrid (if SENDGRID_API_KEY is set)
+    2. SMTP (if SMTP credentials are set)
+    3. None (log warning)
     """
     global _email_service
     try:
         config = get_config()
-        _email_service = SMTPEmailService(config.smtp)
+
+        # Prefer SendGrid for production (works on Hugging Face Spaces)
+        if config.email_provider == "sendgrid" and config.sendgrid.api_key:
+            _email_service = SendGridEmailService(
+                api_key=config.sendgrid.api_key,
+                from_email=config.sendgrid.from_email,
+                from_name=config.sendgrid.from_name
+            )
+            logger.info("Email service initialized: SendGrid")
+        # Fallback to SMTP (may not work on Hugging Face Spaces)
+        elif config.smtp.host and config.smtp.username:
+            _email_service = SMTPEmailService(config.smtp)
+            logger.info("Email service initialized: SMTP")
+        else:
+            logger.warning("No email service configured (neither SendGrid nor SMTP)")
+
     except Exception as e:
         # Log error but don't fail startup - email service is optional
-        import logging
-        logger = logging.getLogger(__name__)
         logger.warning(f"Failed to initialize email service: {str(e)}")
 
 
