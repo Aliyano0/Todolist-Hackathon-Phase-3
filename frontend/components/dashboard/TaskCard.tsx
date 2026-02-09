@@ -5,8 +5,40 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { scaleInVariants } from '@/lib/animations'
 import { PriorityBadge, Priority } from './PriorityBadge'
 import { CategoryTag, Category } from './CategoryTag'
-import { Pencil, Trash2, Check } from 'lucide-react'
+import { Pencil, Trash2, Check, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Helper function to format date and time
+function formatDateTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+  // If less than 24 hours ago, show relative time
+  if (diffInHours < 1) {
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    if (diffInMinutes < 1) return 'Just now'
+    if (diffInMinutes === 1) return '1 minute ago'
+    return `${diffInMinutes} minutes ago`
+  }
+
+  if (diffInHours < 24) {
+    if (diffInHours === 1) return '1 hour ago'
+    return `${diffInHours} hours ago`
+  }
+
+  // Otherwise show full date and time
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }
+
+  return date.toLocaleString('en-US', options)
+}
 
 export interface Task {
   id: string
@@ -98,8 +130,12 @@ export function TaskCard({
                 {task.description}
               </p>
             )}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <CategoryTag category={task.category} size="sm" />
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                <span>{formatDateTime(task.createdAt)}</span>
+              </div>
             </div>
           </div>
         </div>
