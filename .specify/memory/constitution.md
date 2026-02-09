@@ -1,21 +1,22 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 2.4.0 → 2.5.0 (minor update - Phase 3 AI Chatbot integration)
+Version change: 2.5.0 → 2.6.0 (minor update - Multilingual support and email verification)
 Modified principles:
-  - Updated title to reflect Phase 3 scope
-  - Added Principle XI: AI Conversational Interface
-  - Updated tech stack to include OpenAI Agents SDK, MCP SDK, ChatKit
-  - Expanded project structure to include MCP server and chat components
-  - Updated goals and success criteria for conversational interface
+  - Updated Principle IX: Added email verification requirement for chatbot access
+  - Updated Principle XI: Added multilingual support (English, Roman Urdu, Urdu)
+  - Updated authentication features to include email verification flow
+  - Updated authorization to check email_verified status for chat endpoint
+  - Updated chat endpoint to detect language and require verified email
+  - Updated frontend chat interface to handle email verification
+  - Updated database schema to include email_verified and detected_language fields
 Added sections:
-  - AI Chatbot architecture and requirements
-  - MCP server implementation guidelines
-  - Conversation state management
+  - Multilingual Support subsection in Principle XI
+  - Email verification requirements in authentication and authorization
 Templates requiring updates:
-  - ✅ spec-template.md (should include AI chatbot feature sections)
-  - ✅ plan-template.md (should include MCP server and AI agent design)
-  - ✅ tasks-template.md (should include AI/NLP task categories)
+  - ✅ spec-template.md (should include multilingual and email verification sections)
+  - ✅ plan-template.md (should include language detection and email verification design)
+  - ✅ tasks-template.md (should include email verification and i18n task categories)
 Follow-up TODOs: None (all placeholders filled)
 -->
 
@@ -134,11 +135,14 @@ Phase III MUST implement secure multi-user functionality using Better Auth with 
 
 **Authentication Features:**
 - User registration with email and password validation
+- Email verification required before accessing chatbot features
 - User login with credential verification
-- JWT token issuance by Better Auth containing user_id (UUID), email, and expiration
+- JWT token issuance by Better Auth containing user_id (UUID), email, email_verified status, and expiration
 - Automatic token attachment to all API requests (Authorization: Bearer header)
 - User logout (client-side session clearing)
 - Session persistence for 7-day token validity period
+- Email verification link sent on registration
+- Resend verification email functionality
 
 **Security Implementation:**
 - Password hashing using industry-standard algorithms (bcrypt)
@@ -150,9 +154,12 @@ Phase III MUST implement secure multi-user functionality using Better Auth with 
 
 **Authorization & Data Isolation:**
 - All API routes (including chat endpoint) require valid JWT token
+- Chat endpoint additionally requires email_verified=true in JWT token
 - User ID extracted from JWT token (sub claim) for authorization
+- Email verification status extracted from JWT token (email_verified claim)
 - API routes use user ID in path (/api/{user_id}/tasks, /api/{user_id}/chat) validated against token
 - User ID mismatch between token and path results in 403 Forbidden
+- Unverified email attempting to access chat endpoint results in 403 Forbidden with clear message
 - Missing or invalid token results in 401 Unauthorized
 - Proper data isolation between users at database level
 - All database queries filtered by authenticated user_id
@@ -168,18 +175,21 @@ Phase III MUST implement secure multi-user functionality using Better Auth with 
 - Responsive design for all screen sizes
 
 **Database Schema:**
-- User model with UUID primary key, unique email, and password hash
+- User model with UUID primary key, unique email, password hash, and email_verified boolean
 - Task model with UUID primary key and user_id foreign key
 - Conversation model with UUID primary key and user_id foreign key
-- Message model with UUID primary key and conversation_id foreign key
+- Message model with UUID primary key, conversation_id foreign key, and detected_language field
 - Referential integrity between tasks/conversations and users
 - Indexed fields for performance (email, user_id, conversation_id)
 
 **Rationale**: Multi-user support with Better Auth provides a robust, industry-standard
 authentication solution. The stateless JWT approach simplifies backend architecture while
 maintaining security. Better Auth handles token issuance complexity, allowing the backend
-to focus on verification and authorization. Proper data isolation prevents cross-user
-data leakage and ensures security compliance for both task and conversation data.
+to focus on verification and authorization. Email verification ensures only legitimate users
+access the chatbot feature, reducing spam and abuse. Proper data isolation prevents cross-user
+data leakage and ensures security compliance for both task and conversation data. Multilingual
+support (English, Roman Urdu, Urdu) makes the chatbot accessible to a broader user base,
+with automatic language detection providing seamless user experience.
 
 ### X. Test-Driven Development (Non-Negotiable)
 
@@ -218,13 +228,16 @@ Phase III MUST implement a conversational interface using OpenAI Agents SDK with
 
 **Chat Endpoint:**
 - Stateless FastAPI endpoint: POST /api/{user_id}/chat
+- Requires valid JWT token with email_verified=true
+- Returns 403 Forbidden if email not verified (with message: "Email verification required to use chatbot")
 - Accept message payload with conversation_id (optional for new conversations)
 - Validate user_id from JWT token matches path parameter
 - Load conversation history from database if conversation_id provided
-- Process message through OpenAI Agents SDK
+- Detect language from user input (English, Roman Urdu, Urdu)
+- Process message through OpenAI Agents SDK with detected language context
 - Execute tools via MCP server with user_id parameter
 - Persist conversation and message to database
-- Return agent response with tool execution results
+- Return agent response in detected language with tool execution results
 
 **Conversation State Management:**
 - Conversation model: UUID id, UUID user_id, timestamp created_at, timestamp updated_at
@@ -235,11 +248,15 @@ Phase III MUST implement a conversational interface using OpenAI Agents SDK with
 
 **Frontend Chat Interface:**
 - Use OpenAI ChatKit UI components in Next.js
+- Check email_verified status before allowing chat access
+- Display email verification prompt if email not verified
+- Provide "Resend Verification Email" button for unverified users
 - Send messages with JWT token in Authorization header
 - Display user messages, assistant responses, and tool execution results
 - Handle conversation creation and resumption
 - Show loading states during agent processing
 - Display errors clearly to users
+- Support multilingual UI (English, Roman Urdu, Urdu) based on detected language
 
 **Natural Language Capabilities:**
 - Support natural language task management (e.g., "Add buy groceries to my list")
@@ -247,6 +264,14 @@ Phase III MUST implement a conversational interface using OpenAI Agents SDK with
 - Context-aware responses using conversation history
 - Confirmation for ambiguous or destructive actions
 - Graceful handling of unrecognized intents
+
+**Multilingual Support:**
+- Primary language: English
+- Supported languages: English, Roman Urdu, Urdu
+- Automatic language detection based on user input
+- AI agent responds in the detected language
+- Language detection per message (users can switch languages mid-conversation)
+- No translation of existing task data (tasks stored as-is in user's language)
 
 **Rationale**: The stateless architecture ensures scalability and simplifies deployment.
 Storing conversation state in the database enables context-aware responses and allows
@@ -259,7 +284,8 @@ Multi-user isolation at the tool level ensures security and data privacy.
 ### Primary Goal
 Deliver a working, tested, clean-architecture multi-user web todo application with AI
 conversational interface that implements all five core features through both web UI and
-natural language, with persistent storage for tasks and conversations, serving as a solid
+natural language, with multilingual support (English, Roman Urdu, Urdu), email verification
+for chatbot access, and persistent storage for tasks and conversations, serving as a solid
 foundation for future evolution phases.
 
 ### Secondary Goals
@@ -269,6 +295,8 @@ foundation for future evolution phases.
 - Demonstrate modern AI-powered web development practices
 - Implement proper data isolation for both tasks and conversations
 - Enable context-aware conversational experiences
+- Provide multilingual support with automatic language detection
+- Ensure chatbot access is restricted to verified users
 
 ### Non-Goals
 - Advanced AI features beyond Basic Level task management
@@ -286,11 +314,16 @@ foundation for future evolution phases.
 ### Functional Criteria
 - All five features work correctly in both web UI and conversational interface
 - User authentication (signup/signin) works seamlessly
+- Email verification required and enforced for chatbot access
+- Unverified users receive clear instructions to verify email
 - Data persists across sessions and user logins
 - Conversation history persists and can be resumed after restart
 - Error handling provides clear, actionable messages
 - Multi-user data isolation prevents cross-user access for tasks and conversations
 - Natural language intent recognition works for all five core features
+- Multilingual support works for English, Roman Urdu, and Urdu
+- Language detection accurately identifies user's language from input
+- AI agent responds in the detected language
 
 ### Architectural Criteria
 - Core domain has minimal imports from outer layers (API, UI, Infrastructure, AI)
@@ -515,4 +548,4 @@ All PRs and commits must verify constitution compliance. Violations must be
 documented in an ADR with explicit justification for why the constraint was
 intentionally violated.
 
-**Version**: 2.5.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-02-09
+**Version**: 2.6.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-02-09
