@@ -144,13 +144,13 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+    <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-lg shadow-lg border border-border">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Sign in to your account</h2>
+        <h2 className="text-3xl font-bold text-foreground">Sign in to your account</h2>
       </div>
 
       {error && (
-        <div className="p-3 text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-300 rounded-md border border-red-300 dark:border-red-700">
+        <div className="p-3 text-destructive bg-destructive/10 rounded-lg border border-destructive/30">
           <div className="flex items-center">
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -164,7 +164,7 @@ const LoginForm = () => {
         <div className="space-y-4">
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">
               Email address
             </label>
             <input
@@ -176,20 +176,20 @@ const LoginForm = () => {
               onChange={handleEmailChange}
               onBlur={() => handleBlur('email')}
               disabled={loading}
-              className={`block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 sm:text-sm transition-colors ${
+              className={`block w-full px-3 py-2 mt-1 border rounded-lg shadow-sm focus:outline-none focus:ring-2 sm:text-sm transition-colors bg-background text-foreground ${
                 touched.email && validationErrors.email
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500'
-              } ${loading ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed' : 'bg-white dark:bg-gray-900'} dark:text-white`}
+                  ? 'border-destructive focus:ring-destructive focus:border-destructive'
+                  : 'border-input focus:ring-ring focus:border-ring'
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {touched.email && validationErrors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.email}</p>
+              <p className="mt-1 text-sm text-destructive">{validationErrors.email}</p>
             )}
           </div>
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
               Password
             </label>
             <input
@@ -201,21 +201,21 @@ const LoginForm = () => {
               onChange={handlePasswordChange}
               onBlur={() => handleBlur('password')}
               disabled={loading}
-              className={`block w-full px-3 py-2 mt-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 sm:text-sm transition-colors ${
+              className={`block w-full px-3 py-2 mt-1 border rounded-lg shadow-sm focus:outline-none focus:ring-2 sm:text-sm transition-colors bg-background text-foreground ${
                 touched.password && validationErrors.password
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500'
-              } ${loading ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed' : 'bg-white dark:bg-gray-900'} dark:text-white`}
+                  ? 'border-destructive focus:ring-destructive focus:border-destructive'
+                  : 'border-input focus:ring-ring focus:border-ring'
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {touched.password && validationErrors.password && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.password}</p>
+              <p className="mt-1 text-sm text-destructive">{validationErrors.password}</p>
             )}
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="text-sm">
-            <a href="/forgot-password" className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+            <a href="/forgot-password" className="font-medium text-primary hover:text-primary/80 transition-colors">
               Forgot your password?
             </a>
           </div>
@@ -225,7 +225,7 @@ const LoginForm = () => {
           <button
             type="submit"
             disabled={loading || (touched.email && !!validationErrors.email) || (touched.password && !!validationErrors.password)}
-            className={`flex justify-center items-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all ${
+            className={`flex justify-center items-center w-full px-4 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-lg shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-all ${
               loading || (touched.email && !!validationErrors.email) || (touched.password && !!validationErrors.password)
                 ? 'opacity-50 cursor-not-allowed'
                 : ''
@@ -241,9 +241,9 @@ const LoginForm = () => {
           </button>
         </div>
 
-        <div className="text-sm text-center text-gray-500 dark:text-gray-400">
+        <div className="text-sm text-center text-muted-foreground">
           Don't have an account?{' '}
-          <a href="/register" className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+          <a href="/register" className="font-medium text-primary hover:text-primary/80 transition-colors">
             Sign up
           </a>
         </div>

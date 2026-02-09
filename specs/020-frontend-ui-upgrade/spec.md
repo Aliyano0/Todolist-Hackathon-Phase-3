@@ -96,15 +96,15 @@ A user navigates through different sections of the application and experiences a
 - **FR-001**: System MUST display a dedicated homepage at the root URL that is distinct from the login and dashboard pages
 - **FR-002**: Homepage MUST display a hero section with prominent application branding and value proposition
 - **FR-003**: Homepage MUST show "Sign Up" and "Login" call-to-action buttons for unauthenticated users
-- **FR-004**: Homepage MUST show "Dashboard" and "Profile" navigation options for authenticated users
-- **FR-005**: Homepage MUST include additional content sections that explain key features and benefits
+- **FR-004**: Homepage MUST show "Dashboard" and "Profile" navigation options for authenticated users (authenticated users see the homepage, not a redirect to dashboard)
+- **FR-005**: Homepage MUST include the following content sections after the hero: (1) Features Section highlighting 3-4 key capabilities (AI-powered task suggestions, smart categorization and priorities, cross-device synchronization, productivity analytics) with icons or illustrations, (2) How It Works Section showing a 3-step user journey (sign up and create first task, organize with categories and priorities, get AI-powered insights), (3) Call-to-Action Section with final conversion prompt and Sign Up button, and (4) Footer with standard links (About, Privacy Policy, Terms of Service, Contact)
 - **FR-006**: Dashboard MUST display tasks in a visually organized layout with clear hierarchy
-- **FR-007**: Dashboard MUST visually distinguish between different task priorities through design elements
-- **FR-008**: Dashboard MUST visually distinguish between different task categories through design elements
+- **FR-007**: Dashboard MUST visually distinguish between different task priorities using: (1) 4px solid color-coded left border on task cards (High=red #EF4444, Medium=yellow #F59E0B, Low=green #10B981, None=gray #6B7280), (2) small pill-shaped priority badge in top-right corner with matching color, and (3) optional small icon indicator next to badge
+- **FR-008**: Dashboard MUST visually distinguish between different task categories using: (1) subtle background color tint on task cards (5-10% opacity of category color), (2) rounded category tag/chip below task title with category name and icon, and (3) optional section grouping with collapsible headers. Priority visual treatments take precedence over category treatments to maintain clear visual hierarchy
 - **FR-009**: System MUST provide visual feedback for all user interactions (hover, click, focus states)
-- **FR-010**: System MUST animate page transitions between different routes
-- **FR-011**: System MUST animate task additions and removals in the dashboard
-- **FR-012**: System MUST animate modal and dropdown appearances
+- **FR-010**: System MUST animate page transitions using fade + slight slide (20px) with 300ms duration and ease-in-out easing (slide up for forward navigation, slide down for back navigation)
+- **FR-011**: System MUST animate task additions (fade in + scale from 0.95 to 1.0 + slide down, 250ms spring animation with stiffness 300 and damping 30, stagger by 50ms for multiple tasks) and removals (fade out + scale to 0.95 + slide up then collapse height, 250ms spring animation)
+- **FR-012**: System MUST animate modal appearances (backdrop fade 200ms + content scale from 0.95 to 1.0 with fade 250ms) and dropdown appearances (fade in + slide down 10px with 200ms spring animation), with exit animations using reverse pattern at 150ms duration
 - **FR-013**: System MUST maintain consistent visual styling across all pages (colors, typography, spacing)
 - **FR-014**: System MUST maintain consistent component behavior across all pages (buttons, forms, cards)
 - **FR-015**: System MUST support both light and dark themes with consistent visual quality
@@ -113,6 +113,37 @@ A user navigates through different sections of the application and experiences a
 - **FR-018**: System MUST maintain responsive design across all screen sizes (mobile, tablet, desktop)
 - **FR-019**: System MUST ensure all interactive elements have appropriate hover and focus states
 - **FR-020**: System MUST provide loading states with visual feedback during data fetching
+
+### Design Guidelines
+
+The "modern and sleek" design aesthetic MUST incorporate these specific characteristics:
+
+**Visual Style**:
+- Clean, minimalist layouts with generous whitespace
+- Subtle shadows and depth using elevation system
+- Rounded corners on cards and buttons (8px border radius)
+- Smooth gradients for hero section and accent elements
+
+**Color Palette**:
+- Primary brand color with 5-7 shades for visual hierarchy
+- Neutral grays for text and backgrounds (with light/dark mode variants)
+- Accent colors for task priorities (red=high, yellow=medium, green=low)
+- High contrast ratios for accessibility (WCAG AA minimum)
+
+**Typography**:
+- Modern sans-serif font family (Inter, Poppins, or system fonts)
+- Clear type scale (headings: 32px/24px/20px, body: 16px, small: 14px)
+- Appropriate line heights (1.5 for body text, 1.2 for headings)
+
+**Spacing System**:
+- Consistent spacing scale (4px, 8px, 16px, 24px, 32px, 48px, 64px)
+- Adequate padding in interactive elements (minimum 12px vertical, 24px horizontal for buttons)
+
+**Interactive Elements**:
+- Subtle hover effects (scale, color shift, shadow increase)
+- Glowing effect on buttons (subtle box-shadow glow on hover/focus states)
+- Clear focus indicators for keyboard navigation
+- Smooth state transitions (200-300ms duration)
 
 ### Key Entities
 
@@ -250,4 +281,10 @@ A user navigates through different sections of the application and experiences a
 
 ## Open Questions
 
-None - all requirements are clear based on the feature description and existing application structure.
+All clarifications completed on 2026-02-09:
+
+1. ✅ **Homepage Content Sections (FR-005)**: Clarified to include Features Section (4 key capabilities), How It Works Section (3-step journey), Call-to-Action Section, and Footer with standard links
+2. ✅ **Authenticated User Homepage Behavior (FR-004)**: Clarified that authenticated users see the homepage with Dashboard/Profile navigation (no automatic redirect to dashboard)
+3. ✅ **Design Aesthetic Definition**: Added comprehensive Design Guidelines section defining visual style, color palette, typography, spacing system, and interactive elements (including glowing button effect)
+4. ✅ **Priority and Category Visual Treatments (FR-007, FR-008)**: Specified color-coded borders, priority badges, category tags, background tints, and visual hierarchy rules
+5. ✅ **Animation Patterns (FR-010, FR-011, FR-012)**: Defined specific animation types, durations, easing functions, and spring physics parameters for page transitions, task interactions, and modal/dropdown appearances

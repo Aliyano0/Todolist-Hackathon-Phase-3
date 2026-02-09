@@ -230,6 +230,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Python 3.13+ for backend, TypeScript 5.0+ for frontend + FastAPI, SQLModel, Neon Serverless PostgreSQL (with asyncpg), Better Auth, Next.js 16.1+, python-jose[cryptography] (017-better-auth-integration)
 - Neon Serverless PostgreSQL (postgres version 17) with SQLModel ORM and asyncpg driver (018-better-auth-jwt)
 - Neon Serverless PostgreSQL (postgres 17) with SQLModel ORM and asyncpg driver (019-production-deployment)
+- TypeScript 5.0+ (frontend only) + Next.js 16.1+ (App Router), React 19, Shadcn UI, Tailwind CSS, Framer Motion (motion for web) (020-frontend-ui-upgrade)
+- N/A (frontend only - uses existing backend API) (020-frontend-ui-upgrade)
 
 ## Recent Changes
 - 001-todo-console-app: Added Python 3.13+ + None (standard library only)

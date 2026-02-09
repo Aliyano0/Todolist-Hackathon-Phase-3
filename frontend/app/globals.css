@@ -57,49 +57,152 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  /* Design System Base Styles (020-frontend-ui-upgrade) */
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
 }
 
-body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
-}
+@layer utilities {
+  /* Modern gradient backgrounds */
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 14%, 96%, 1) 100%);
+  }
 
-/* Modern gradient backgrounds */
-.gradient-bg {
-  background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 14%, 96%, 1) 100%);
-}
+  .dark .gradient-bg {
+    background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 15%, 8%, 1) 100%);
+  }
 
-.dark .gradient-bg {
-  background: linear-gradient(135deg, hsl(217, 91%, 60%, 0.1) 0%, hsl(220, 15%, 8%, 1) 100%);
-}
+  /* Hero gradient for homepage */
+  .hero-gradient {
+    background: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(280, 65%, 60%) 100%);
+  }
 
-/* Glowing button effect */
-.glowing-button {
-  position: relative;
-  overflow: hidden;
-}
+  /* Glowing button effect */
+  .glowing-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.15s ease-out;
+  }
 
-.glowing-button::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
+  .glowing-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
-.glowing-button:hover::before {
-  opacity: 1;
+  .glowing-button:hover {
+    transform: scale(1.02);
+  }
+
+  .glowing-button:hover::before {
+    opacity: 1;
+  }
+
+  .glowing-button:active {
+    transform: scale(0.98);
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .dark .card-hover:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Priority border styles */
+  .border-priority-high {
+    border-left: 4px solid #EF4444;
+  }
+
+  .border-priority-medium {
+    border-left: 4px solid #F59E0B;
+  }
+
+  .border-priority-low {
+    border-left: 4px solid #10B981;
+  }
+
+  .border-priority-none {
+    border-left: 4px solid #6B7280;
+  }
+
+  /* Category background tints */
+  .bg-category-work-tint {
+    background-color: rgba(59, 130, 246, 0.05);
+  }
+
+  .bg-category-personal-tint {
+    background-color: rgba(139, 92, 246, 0.05);
+  }
+
+  .bg-category-shopping-tint {
+    background-color: rgba(236, 72, 153, 0.05);
+  }
+
+  .bg-category-health-tint {
+    background-color: rgba(16, 185, 129, 0.05);
+  }
+
+  .bg-category-other-tint {
+    background-color: rgba(107, 114, 128, 0.05);
+  }
+
+  .dark .bg-category-work-tint {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  .dark .bg-category-personal-tint {
+    background-color: rgba(139, 92, 246, 0.1);
+  }
+
+  .dark .bg-category-shopping-tint {
+    background-color: rgba(236, 72, 153, 0.1);
+  }
+
+  .dark .bg-category-health-tint {
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+
+  .dark .bg-category-other-tint {
+    background-color: rgba(107, 114, 128, 0.1);
+  }
 }
 
 /* Smooth animations */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -111,12 +214,18 @@ body {
   }
 }
 
-/* Card hover effect */
-.card-hover {
-  transition: all 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
 }
 
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

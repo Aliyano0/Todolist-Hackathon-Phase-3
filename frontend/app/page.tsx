@@ -1,86 +1,119 @@
-'use client';
+'use client'
 
-import Navbar from '@/components/navigation/Navbar';
-import { TodoList } from '@/components/todo/TodoList';
-import { TodoForm } from '@/components/todo/TodoForm';
-import { useTodos } from '@/hooks/useTodos';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useRouter } from 'next/navigation'
+import { HeroSection } from '@/components/homepage/HeroSection'
+import { FeaturesSection } from '@/components/homepage/FeaturesSection'
+import { HowItWorksSection } from '@/components/homepage/HowItWorksSection'
+import { CTASection } from '@/components/homepage/CTASection'
+import { Footer } from '@/components/layout/Footer'
+import { useAuth } from '@/providers/AuthProvider'
 
 export default function HomePage() {
-  const { todos, loading, error, addTodo, updateTodo, deleteTodo, toggleComplete } = useTodos();
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
 
-  const handleAddTodo = async (todoData: Omit<any, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
-    await addTodo(todoData);
-  };
+  const features = [
+    {
+      id: '1',
+      title: 'AI-Powered Task Suggestions',
+      description: 'Get intelligent recommendations for organizing and prioritizing your tasks based on your patterns and preferences.',
+      icon: 'sparkles'
+    },
+    {
+      id: '2',
+      title: 'Smart Categorization & Priorities',
+      description: 'Automatically categorize tasks and set priorities to focus on what matters most.',
+      icon: 'tags'
+    },
+    {
+      id: '3',
+      title: 'Cross-Device Synchronization',
+      description: 'Access your tasks seamlessly across all your devices with real-time sync.',
+      icon: 'refresh'
+    },
+    {
+      id: '4',
+      title: 'Productivity Analytics',
+      description: 'Track your progress and gain insights into your productivity patterns over time.',
+      icon: 'chart'
+    }
+  ]
 
-  const handleUpdateTodo = async (id: string, updates: Partial<any>) => {
-    await updateTodo(id, updates);
-  };
+  const steps = [
+    {
+      number: 1,
+      title: 'Sign Up & Create Your First Task',
+      description: 'Get started in seconds with a simple registration process and add your first task.'
+    },
+    {
+      number: 2,
+      title: 'Organize with Categories & Priorities',
+      description: 'Use smart categories and priority levels to keep your tasks organized and focused.'
+    },
+    {
+      number: 3,
+      title: 'Get AI-Powered Insights',
+      description: 'Receive intelligent suggestions and analytics to boost your productivity.'
+    }
+  ]
 
-  const handleDeleteTodo = async (id: string) => {
-    await deleteTodo(id);
-  };
+  const footerLinks = [
+    { label: 'About', href: '/about' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Contact', href: '/contact' }
+  ]
 
-  const handleToggleComplete = async (id: string) => {
-    await toggleComplete(id);
-  };
+  const handleSignUp = () => {
+    router.push('/register')
+  }
+
+  const handleLogin = () => {
+    router.push('/login')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              <div className="animate-pulse">
-                <div className="h-8 bg-muted rounded w-1/4 mb-6"></div>
-                <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
-                <h2 className="font-bold">Error Loading Todos</h2>
-                <p className="mt-1">{error}</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-                  Todo Dashboard
-                </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Manage your tasks efficiently
-                </p>
-              </div>
+    <div className="min-h-screen bg-background">
+      <HeroSection
+        title="AI Powered Todo Web App"
+        subtitle="Manage your tasks efficiently with intelligent organization and insights"
+        primaryCTA="Sign Up"
+        secondaryCTA="Login"
+        onPrimaryCTAClick={handleSignUp}
+        onSecondaryCTAClick={handleLogin}
+        isAuthenticated={isAuthenticated}
+      />
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <TodoList
-                    todos={todos}
-                    onUpdate={handleUpdateTodo}
-                    onDelete={handleDeleteTodo}
-                    onToggleComplete={handleToggleComplete}
-                  />
-                </div>
-                <div>
-                  <TodoForm onAddTodo={handleAddTodo} />
+      <FeaturesSection
+        features={features}
+        heading="Powerful Features for Productivity"
+        subheading="Everything you need to stay organized and focused"
+      />
 
-                  <div className="mt-6 p-4 bg-muted rounded-lg">
-                    <h3 className="font-medium text-foreground">Statistics</h3>
-                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                      <p>Total todos: {todos.length}</p>
-                      <p>Completed: {todos.filter((t: any) => t.completed).length}</p>
-                      <p>Pending: {todos.filter((t: any) => !t.completed).length}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </main>
-      </div>
-    </ProtectedRoute>
-  );
+      <HowItWorksSection
+        steps={steps}
+        heading="How It Works"
+      />
+
+      <CTASection
+        heading="Ready to boost your productivity?"
+        description="Join thousands of users who are already managing their tasks more efficiently."
+        buttonText="Get Started Free"
+        onButtonClick={handleSignUp}
+      />
+
+      <Footer
+        links={footerLinks}
+        copyright={`© ${new Date().getFullYear()} AI Powered Todo. All rights reserved.`}
+      />
+    </div>
+  )
 }
