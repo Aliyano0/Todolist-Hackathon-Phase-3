@@ -10,8 +10,17 @@ import { cn } from '@/lib/utils'
 
 // Helper function to format date and time
 function formatDateTime(dateString: string): string {
-  // Parse the date string - handle both ISO format with/without timezone
-  const date = new Date(dateString)
+  // Parse the date string and explicitly treat it as UTC
+  // Backend sends naive datetime strings that should be interpreted as UTC
+  let date: Date
+
+  // If the string doesn't have timezone info, append 'Z' to treat it as UTC
+  if (dateString && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('T00:00:00')) {
+    // Add 'Z' to indicate UTC timezone
+    date = new Date(dateString + 'Z')
+  } else {
+    date = new Date(dateString)
+  }
 
   // Check if date is valid
   if (isNaN(date.getTime())) {
