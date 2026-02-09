@@ -15,8 +15,20 @@
 - **Health Check:** https://aliyan-q-todo-backend.hf.space/health
 
 ### Frontend (Vercel)
+- **URL:** https://todo-hackathon-one.vercel.app
 - **Platform:** Vercel (Next.js Serverless)
 - **Status:** ✅ Deployed
+- **Framework:** Next.js 16.1 with App Router
+### Frontend (Vercel)
+- **URL:** https://todo-hackathon-one.vercel.app/
+- **Platform:** Vercel (Next.js Serverless)
+- **Status:** ✅ Deployed
+- **Framework:** Next.js 16.1 with App Router
+### Frontend (Vercel)
+- **URL:** https://todo-hackathon-one.vercel.app/
+- **Platform:** Vercel (Next.js Serverless)
+- **Status:** ✅ Deployed
+- **Framework:** Next.js 16.1 with App Router
 - **Framework:** Next.js 16.1 with App Router
 
 ### Database
