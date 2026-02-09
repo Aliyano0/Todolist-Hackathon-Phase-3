@@ -86,8 +86,13 @@
 - [x] T023 [US2] Upgrade dashboard page in frontend/app/todos/page.tsx to use new TaskList, TaskCard, and TaskForm components with modern layout
 - [x] T024 [US2] Add task interaction animations (add, complete, delete) with fade/scale/slide effects in frontend/components/dashboard/TaskList.tsx
 - [x] T025 [US2] Test theme consistency for dashboard components in both light and dark modes
+- [x] T026 [US2] Add search functionality to dashboard in frontend/app/todos/page.tsx with keyword search in title and description
+- [x] T027 [US2] Add filter controls to dashboard with status filter (All/Pending/Completed), priority filter (All/High/Medium/Low/None), and category filter (All/Work/Personal/Shopping/Health/Other)
+- [x] T028 [US2] Add sort functionality to dashboard with options for Date Created (newest first), Priority (high to low), and Alphabetical (A-Z)
+- [x] T029 [US2] Implement filtered task count display showing "X of Y tasks" when filters are active
+- [x] T030 [US2] Implement cumulative filtering logic using useMemo for efficient filtering and sorting with all filters working together
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - homepage and dashboard are fully functional with modern UI
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - homepage and dashboard are fully functional with modern UI and comprehensive search/filter/sort capabilities
 
 ---
 
@@ -99,13 +104,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T026 [P] [US4] Audit all existing pages (login, register, profile, forgot-password, reset-password) for design token usage in frontend/app/
-- [ ] T027 [P] [US4] Update login page in frontend/app/login/page.tsx to use design tokens and match new design system
-- [ ] T028 [P] [US4] Update register page in frontend/app/register/page.tsx to use design tokens and match new design system
-- [ ] T029 [P] [US4] Update profile page in frontend/app/profile/page.tsx to use design tokens and match new design system
-- [ ] T030 [US4] Update root layout in frontend/app/layout.tsx to apply design system globally and ensure theme provider wraps all pages
-- [ ] T031 [US4] Create visual consistency validation checklist and verify all pages pass (colors, fonts, spacing, button styles, form styles)
-- [ ] T032 [US4] Test responsive design across mobile (< 768px), tablet (768-1023px), and desktop (≥ 1024px) breakpoints for all pages
+- [x] T031 [P] [US4] Audit all existing pages (login, register, profile, forgot-password, reset-password) for design token usage in frontend/app/
+- [x] T032 [P] [US4] Update login page in frontend/app/login/page.tsx to use design tokens and match new design system
+- [x] T033 [P] [US4] Update register page in frontend/app/register/page.tsx to use design tokens and match new design system
+- [x] T034 [P] [US4] Update profile page in frontend/app/profile/page.tsx to use design tokens and match new design system
+- [x] T035 [US4] Update root layout in frontend/app/layout.tsx to apply design system globally and ensure theme provider wraps all pages
+- [x] T036 [US4] Create visual consistency validation checklist and verify all pages pass (colors, fonts, spacing, button styles, form styles)
+- [x] T037 [US4] Test responsive design across mobile (< 768px), tablet (768-1023px), and desktop (≥ 1024px) breakpoints for all pages
 
 **Checkpoint**: All pages now have consistent visual theme and responsive design
 
@@ -119,15 +124,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T033 [P] [US3] Create PageTransition component in frontend/components/animations/PageTransition.tsx with fade + slide animations for route changes
-- [ ] T034 [P] [US3] Create FadeIn component in frontend/components/animations/FadeIn.tsx with configurable delay and duration
-- [ ] T035 [P] [US3] Create SlideIn component in frontend/components/animations/SlideIn.tsx with directional slide (up, down, left, right) and configurable distance
-- [ ] T036 [P] [US3] Create ScaleIn component in frontend/components/animations/ScaleIn.tsx with scale from 0.95 to 1.0 and configurable initial scale
-- [ ] T037 [US3] Wrap all pages with PageTransition component in frontend/app/layout.tsx for smooth route transitions
-- [ ] T038 [US3] Add button hover animations (scale + glow effect) to all buttons across homepage and dashboard using Framer Motion
-- [ ] T039 [US3] Add modal/dropdown animations (backdrop fade + content scale) to any modals or dropdowns in the application
-- [ ] T040 [US3] Test animation performance using Chrome DevTools Performance tab and ensure 60 FPS on modern devices
-- [ ] T041 [US3] Test reduced motion preferences by enabling prefers-reduced-motion and verifying instant transitions
+- [x] T038 [P] [US3] Create PageTransition component in frontend/components/animations/PageTransition.tsx with fade + slide animations for route changes
+- [x] T039 [P] [US3] Create FadeIn component in frontend/components/animations/FadeIn.tsx with configurable delay and duration
+- [x] T040 [P] [US3] Create SlideIn component in frontend/components/animations/SlideIn.tsx with directional slide (up, down, left, right) and configurable distance
+- [x] T041 [P] [US3] Create ScaleIn component in frontend/components/animations/ScaleIn.tsx with scale from 0.95 to 1.0 and configurable initial scale
+- [x] T042 [US3] Wrap all pages with PageTransition component in frontend/app/layout.tsx for smooth route transitions
+- [x] T043 [US3] Add button hover animations (scale + glow effect) to all buttons across homepage and dashboard using Framer Motion
+- [x] T044 [US3] Add modal/dropdown animations (backdrop fade + content scale) to any modals or dropdowns in the application
+- [x] T045 [US3] Test animation performance using Chrome DevTools Performance tab and ensure 60 FPS on modern devices
+- [x] T046 [US3] Test reduced motion preferences by enabling prefers-reduced-motion and verifying instant transitions
 
 **Checkpoint**: All animations are smooth, performant, and respect accessibility preferences
 
@@ -137,15 +142,15 @@
 
 **Purpose**: Final improvements, documentation, and validation
 
-- [ ] T042 [P] Run accessibility audit using axe DevTools or Lighthouse and fix any violations (ARIA labels, keyboard navigation, contrast ratios)
-- [ ] T043 [P] Run performance audit using Lighthouse and optimize any issues (image optimization, code splitting, lazy loading)
-- [ ] T044 [P] Test all edge cases from spec.md (JavaScript disabled, long task titles, rapid clicks, small screens < 320px, browser compatibility)
-- [ ] T045 [P] Update frontend/CLAUDE.md with final patterns, component usage examples, and design system documentation
-- [ ] T046 [P] Create visual regression test suite using Playwright for homepage and dashboard screenshots
-- [ ] T047 Validate quickstart.md instructions by following setup steps in a clean environment
-- [ ] T048 Run full E2E test suite covering all user stories (homepage visit, dashboard usage, theme switching, animations)
-- [ ] T049 Code cleanup and refactoring (remove console.logs, unused imports, commented code)
-- [ ] T050 Final review of all components for consistency, accessibility, and performance
+- [x] T047 [P] Run accessibility audit using axe DevTools or Lighthouse and fix any violations (ARIA labels, keyboard navigation, contrast ratios)
+- [x] T048 [P] Run performance audit using Lighthouse and optimize any issues (image optimization, code splitting, lazy loading)
+- [x] T049 [P] Test all edge cases from spec.md (JavaScript disabled, long task titles, rapid clicks, small screens < 320px, browser compatibility)
+- [x] T050 [P] Update frontend/CLAUDE.md with final patterns, component usage examples, and design system documentation
+- [ ] T051 [P] Create visual regression test suite using Playwright for homepage and dashboard screenshots
+- [ ] T052 Validate quickstart.md instructions by following setup steps in a clean environment
+- [ ] T053 Run full E2E test suite covering all user stories (homepage visit, dashboard usage, theme switching, animations)
+- [ ] T054 Code cleanup and refactoring (remove console.logs, unused imports, commented code)
+- [ ] T055 Final review of all components for consistency, accessibility, and performance
 
 ---
 
@@ -222,6 +227,11 @@ Task T022: "Create TaskForm component"
 Task T023: "Upgrade dashboard page"
 Task T024: "Add task interaction animations"
 Task T025: "Test theme consistency"
+Task T026: "Add search functionality"
+Task T027: "Add filter controls"
+Task T028: "Add sort functionality"
+Task T029: "Implement filtered task count display"
+Task T030: "Implement cumulative filtering logic"
 ```
 
 ---
@@ -265,13 +275,13 @@ With multiple developers:
 
 ## Task Summary
 
-**Total Tasks**: 50 tasks
+**Total Tasks**: 55 tasks
 
 **Tasks per Phase**:
 - Phase 1 (Setup): 4 tasks
 - Phase 2 (Foundational): 5 tasks (BLOCKING)
 - Phase 3 (US1 - Homepage): 8 tasks
-- Phase 4 (US2 - Dashboard): 8 tasks
+- Phase 4 (US2 - Dashboard): 13 tasks (includes search/filter/sort)
 - Phase 5 (US4 - Theme): 7 tasks
 - Phase 6 (US3 - Animations): 9 tasks
 - Phase 7 (Polish): 9 tasks
@@ -280,7 +290,7 @@ With multiple developers:
 
 **MVP Scope**: Phases 1-3 (17 tasks) deliver a functional homepage
 
-**Full Feature Scope**: All 50 tasks deliver complete professional UI upgrade
+**Full Feature Scope**: All 55 tasks deliver complete professional UI upgrade with comprehensive task management
 
 ---
 

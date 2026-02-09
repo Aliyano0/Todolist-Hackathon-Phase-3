@@ -40,6 +40,8 @@ An authenticated user accesses their todo dashboard and experiences a visually a
 3. **Given** a user is interacting with tasks, **When** they perform actions (add, edit, complete, delete), **Then** the interface provides immediate visual feedback
 4. **Given** a user has many tasks, **When** they view their dashboard, **Then** the layout remains clean and organized without feeling cluttered
 5. **Given** a user switches between light and dark themes, **When** the theme changes, **Then** all dashboard elements maintain visual consistency and readability
+6. **Given** a user has many tasks, **When** they use the search box, **Then** they can quickly find tasks by keyword in title or description
+7. **Given** a user wants to focus on specific tasks, **When** they apply filters (status, priority, category) or sorting options, **Then** the task list updates immediately to show only matching tasks with a filtered count display
 
 ---
 
@@ -113,6 +115,13 @@ A user navigates through different sections of the application and experiences a
 - **FR-018**: System MUST maintain responsive design across all screen sizes (mobile, tablet, desktop)
 - **FR-019**: System MUST ensure all interactive elements have appropriate hover and focus states
 - **FR-020**: System MUST provide loading states with visual feedback during data fetching
+- **FR-021**: Dashboard MUST provide search functionality to filter tasks by keyword (searches title and description fields)
+- **FR-022**: Dashboard MUST provide status filter with options: All, Pending, Completed
+- **FR-023**: Dashboard MUST provide priority filter with options: All, High, Medium, Low, None
+- **FR-024**: Dashboard MUST provide category filter with options: All, Work, Personal, Shopping, Health, Other
+- **FR-025**: Dashboard MUST provide sort options: Date Created (newest first), Priority (high to low), Alphabetical (A-Z)
+- **FR-026**: Dashboard MUST display filtered task count (e.g., "5 of 10 tasks") when filters are active
+- **FR-027**: Dashboard MUST apply all active filters cumulatively (search + status + priority + category + sort work together)
 
 ### Design Guidelines
 
@@ -180,6 +189,10 @@ The "modern and sleek" design aesthetic MUST incorporate these specific characte
 - Conditional navigation based on authentication status
 - Enhanced dashboard visual design and layout
 - Visual indicators for task priorities and categories
+- Task search functionality (keyword search in title and description)
+- Task filtering by status, priority, and category
+- Task sorting by date, priority, and alphabetical order
+- Filtered task count display
 - Smooth animations for page transitions
 - Smooth animations for task interactions (add, edit, delete, complete)
 - Smooth animations for modals and dropdowns
@@ -193,8 +206,7 @@ The "modern and sleek" design aesthetic MUST incorporate these specific characte
 
 - Changes to authentication logic or user management
 - Changes to task data model or backend API
-- New features beyond UI/UX improvements
-- Changes to existing functionality (filtering, sorting, search)
+- New features beyond UI/UX improvements and task management enhancements
 - Email templates or notification designs
 - Admin interfaces or analytics dashboards
 - Third-party integrations or external services

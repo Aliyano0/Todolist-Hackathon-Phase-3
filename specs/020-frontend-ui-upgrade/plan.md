@@ -7,7 +7,7 @@
 
 ## Summary
 
-Transform the existing Next.js frontend from functional to professional-grade by creating a dedicated homepage at the root URL with hero section and conditional navigation, upgrading the dashboard UI with modern visual design and clear task organization, implementing smooth animations using Framer Motion throughout the application, and establishing a consistent design system with concrete visual guidelines. This frontend-only upgrade maintains all existing authentication and backend functionality while significantly improving first-time user experience, daily user satisfaction, and overall application polish.
+Transform the existing Next.js frontend from functional to professional-grade by creating a dedicated homepage at the root URL with hero section and conditional navigation, upgrading the dashboard UI with modern visual design and clear task organization, implementing comprehensive search/filter/sort functionality for task management, implementing smooth animations using Framer Motion throughout the application, and establishing a consistent design system with concrete visual guidelines. This frontend-only upgrade maintains all existing authentication and backend functionality while significantly improving first-time user experience, daily user satisfaction, and overall application polish.
 
 ## Technical Context
 
@@ -18,7 +18,7 @@ Transform the existing Next.js frontend from functional to professional-grade by
 **Target Platform**: Modern web browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 **Project Type**: Web application (frontend only)
 **Performance Goals**: <2s dashboard load time, 60 FPS animations, <300ms page transitions
-**Constraints**: No backend API changes, no authentication changes, must maintain existing functionality, must respect reduced motion preferences, must support light/dark themes
+**Constraints**: No backend API changes, no authentication changes, must maintain existing functionality, must respect reduced motion preferences, must support light/dark themes, search/filter/sort must work efficiently with large task lists
 **Scale/Scope**: 7 pages (homepage, login, register, dashboard, profile, forgot-password, reset-password), 20+ components, 4 new homepage sections, dashboard redesign with priority/category visual treatments
 
 ## Constitution Check
@@ -83,7 +83,9 @@ frontend/
 │   │   ├── TaskList.tsx         # Task list with animations
 │   │   ├── TaskForm.tsx         # Task creation/edit form
 │   │   ├── PriorityBadge.tsx    # Priority indicator component
-│   │   └── CategoryTag.tsx      # Category tag component
+│   │   ├── CategoryTag.tsx      # Category tag component
+│   │   ├── SearchBar.tsx        # Task search input (integrated in todos/page.tsx)
+│   │   └── FilterControls.tsx   # Filter dropdowns (integrated in todos/page.tsx)
 │   ├── animations/              # NEW: Animation wrappers
 │   │   ├── PageTransition.tsx   # Page transition wrapper
 │   │   ├── FadeIn.tsx           # Fade in animation
