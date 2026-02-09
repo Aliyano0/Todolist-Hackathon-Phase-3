@@ -508,9 +508,76 @@ Pre-configured animation variants for consistent motion throughout the app.
 **Dashboard Components** (`frontend/components/dashboard/`):
 - `PriorityBadge.tsx` - Color-coded priority indicators (high/medium/low/none)
 - `CategoryTag.tsx` - Category labels with icons and background tints
-- `TaskCard.tsx` - Task display with 4px priority border, hover lift effect
+- `TaskCard.tsx` - Task display with 4px priority border, hover lift effect, edit/delete buttons
 - `TaskList.tsx` - Task list with loading/error/empty states, staggered animations
-- `TaskForm.tsx` - Task creation/edit form with validation
+- `TaskForm.tsx` - Task creation/edit form with validation and pre-fill support
+
+### Task Management Workflow
+
+**Dashboard Task Editing** (`app/todos/page.tsx`):
+
+The dashboard implements a complete CRUD workflow with inline editing:
+
+```tsx
+const [showForm, setShowForm] = useState(false)
+const [editingTask, setEditingTask] = useState<any>(null)
+
+// Edit handler - finds task and opens edit form
+const handleEditTodo = (taskId: string) => {
+  const task = todos.find((t: any) => t.id === taskId)
+  if (task) {
+    setEditingTask(task)
+    setShowForm(false) // Close create form if open
+  }
+}
+
+// Update handler - submits edited task
+const handleUpdateTodo = async (todoData: any) => {
+  if (editingTask) {
+    await updateTodo(editingTask.id, todoData)
+    setEditingTask(null)
+  }
+}
+```
+
+**Task Card Hover Actions**:
+- Edit and delete buttons appear on hover (using Tailwind `group` and `group-hover`)
+- Edit button opens pre-filled form in sidebar
+- Delete button removes task with confirmation (if implemented)
+- Checkbox toggles completion status
+
+**Form State Management**:
+- Only one form shows at a time (create OR edit)
+- Edit form pre-fills with current task data
+- Cancel button closes form without saving
+- Form validation works for both create and edit modes
+
+**Implementation Pattern**:
+```tsx
+{/* Edit form takes priority */}
+{editingTask && (
+  <TaskForm
+    initialData={{
+      title: editingTask.title,
+      description: editingTask.description || '',
+      priority: editingTask.priority,
+      category: editingTask.category
+    }}
+    onSubmit={handleUpdateTodo}
+    onCancel={handleCancelEdit}
+    submitText="Update Task"
+  />
+)}
+
+{/* Create form shows when not editing */}
+{showForm && !editingTask && (
+  <TaskForm
+    onSubmit={handleAddTodo}
+    onCancel={() => setShowForm(false)}
+    submitText="Create Task"
+  />
+)}
+```
 
 ### Usage Examples
 
@@ -709,12 +776,30 @@ Before deploying UI changes, verify:
 - [ ] Animations respect reduced motion preference
 - [ ] Forms validate correctly with clear error messages
 - [ ] Loading and error states display correctly
+- [ ] Task CRUD operations work (Create, Read, Update, Delete)
+- [ ] Edit button appears on hover and opens pre-filled form
+- [ ] Delete button appears on hover and removes task
+- [ ] Only one form shows at a time (create OR edit)
 - [ ] No console errors or warnings
 - [ ] Accessibility audit passes (WCAG 2.1 AA)
 - [ ] Performance audit passes (Lighthouse 90+)
 
+### Common Issues and Solutions
+
+**Issue**: Edit/Delete buttons not visible
+**Solution**: Ensure parent element has `group` class and buttons use `group-hover:opacity-100`
+
+**Issue**: Edit form not pre-filling
+**Solution**: Pass `initialData` prop to TaskForm with current task values
+
+**Issue**: Multiple forms showing at once
+**Solution**: Use conditional rendering with `editingTask && ...` and `showForm && !editingTask && ...`
+
+**Issue**: Form validation errors on edit
+**Solution**: Ensure initialData matches TaskFormData interface exactly
+
 ## Recent Changes
-- 020-frontend-ui-upgrade: Complete professional UI upgrade with design system, animations, responsive design, and accessibility compliance
+- 020-frontend-ui-upgrade: Complete professional UI upgrade with design system, animations, responsive design, accessibility compliance, and inline task editing
 - 019-production-deployment: Added Vercel deployment configuration, security headers, environment variable patterns, fixed TypeScript strict mode issues, added Suspense boundaries
 - 018-better-auth-jwt: Implementing Better Auth integration with JWT tokens, protected routes, and password validation
 - 016-backend-db-fix: Priority and category fields support in frontend types
