@@ -1,19 +1,75 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { TaskList } from '@/components/dashboard/TaskList'
 import { TaskForm } from '@/components/dashboard/TaskForm'
 import { useTodos } from '@/hooks/useTodos'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Navbar from '@/components/navigation/Navbar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, BarChart3 } from 'lucide-react'
+import { Plus, BarChart3, Search, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export default function TodosPage() {
   const { todos, loading, error, addTodo, updateTodo, deleteTodo, toggleComplete } = useTodos()
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<any>(null)
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending'>('all')
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low' | 'none'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'work' | 'personal' | 'shopping' | 'health' | 'other'>('all')
+  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'alphabetical'>('date')
+
+  // Filter and sort tasks
+  const filteredAndSortedTodos = useMemo(() => {
+    let filtered = [...todos]
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(task =>
+        task.title.toLowerCase().includes(query) ||
+        (task.description && task.description.toLowerCase().includes(query))
+      )
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(task =>
+        statusFilter === 'completed' ? task.completed : !task.completed
+      )
+    }
+
+    // Priority filter
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(task => task.priority === priorityFilter)
+    }
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(task => task.category === categoryFilter)
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'priority':
+          const priorityOrder = { high: 0, medium: 1, low: 2, none: 3 }
+          return priorityOrder[a.priority] - priorityOrder[b.priority]
+        case 'alphabetical':
+          return a.title.localeCompare(b.title)
+        case 'date':
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      }
+    })
+
+    return filtered
+  }, [todos, searchQuery, statusFilter, priorityFilter, categoryFilter, sortBy])
 
   const handleAddTodo = async (todoData: any) => {
     await addTodo(todoData)
@@ -51,7 +107,8 @@ export default function TodosPage() {
     total: todos.length,
     completed: todos.filter((t: any) => t.completed).length,
     pending: todos.filter((t: any) => !t.completed).length,
-    highPriority: todos.filter((t: any) => t.priority === 'high' && !t.completed).length
+    highPriority: todos.filter((t: any) => t.priority === 'high' && !t.completed).length,
+    filtered: filteredAndSortedTodos.length
   }
 
   return (
@@ -103,11 +160,11 @@ export default function TodosPage() {
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
                       <CardTitle>Your Tasks</CardTitle>
                       <CardDescription>
-                        {stats.pending} pending, {stats.completed} completed
+                        {stats.filtered} of {stats.total} tasks
                       </CardDescription>
                     </div>
                     <Button
@@ -119,10 +176,77 @@ export default function TodosPage() {
                       New Task
                     </Button>
                   </div>
+
+                  {/* Search and Filters */}
+                  <div className="space-y-3">
+                    {/* Search */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+
+                    {/* Filters */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Priority</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={categoryFilter} onValueChange={(value: any) => setCategoryFilter(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="work">Work</SelectItem>
+                          <SelectItem value="personal">Personal</SelectItem>
+                          <SelectItem value="shopping">Shopping</SelectItem>
+                          <SelectItem value="health">Health</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date">Date Created</SelectItem>
+                          <SelectItem value="priority">Priority</SelectItem>
+                          <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <TaskList
-                    tasks={todos}
+                    tasks={filteredAndSortedTodos}
                     isLoading={loading}
                     error={error}
                     onComplete={handleToggleComplete}
