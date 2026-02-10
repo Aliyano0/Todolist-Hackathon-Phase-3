@@ -132,7 +132,6 @@ build/
 # folder-structure.md
 
 # Claude Code specific
-.claude/
 
 # Misc
 .specify/cache/
