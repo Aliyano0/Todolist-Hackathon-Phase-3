@@ -10,7 +10,7 @@ import { useAuth } from '@/providers/AuthProvider'
 
 export default function HomePage() {
   const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
 
   const features = [
     {
@@ -72,7 +72,7 @@ export default function HomePage() {
     router.push('/login')
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>

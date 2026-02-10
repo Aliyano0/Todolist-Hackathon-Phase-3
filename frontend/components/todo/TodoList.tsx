@@ -48,7 +48,7 @@ export function TodoList({ todos, onUpdate, onDelete, onToggleComplete }: TodoLi
       let comparison = 0;
 
       if (sortBy === 'priority') {
-        const priorityOrder: Record<PriorityLevel, number> = { high: 3, medium: 2, low: 1 };
+        const priorityOrder: Record<PriorityLevel, number> = { high: 3, medium: 2, low: 1, none: 0 };
         comparison = priorityOrder[b.priority] - priorityOrder[a.priority]; // High priority first
       } else if (sortBy === 'category') {
         comparison = a.category.localeCompare(b.category);

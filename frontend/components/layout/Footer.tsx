@@ -20,7 +20,7 @@ export function Footer({ links, copyright }: FooterProps) {
           {links.map((link) => (
             <Link
               key={link.href}
-              href={link.href}
+              href={link.href as any}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}

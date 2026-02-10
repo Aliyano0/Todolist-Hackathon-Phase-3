@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TodoItem, PriorityLevel } from '@/lib/api';
+import { TodoItem, PriorityLevel, Category } from '@/lib/api';
 
 interface TodoFormProps {
   onAddTodo: (todo: Omit<TodoItem, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
@@ -11,10 +11,10 @@ export function TodoForm({ onAddTodo }: TodoFormProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<PriorityLevel>('medium');
-  const [category, setCategory] = useState('personal');
+  const [category, setCategory] = useState<Category>('personal');
   const [loading, setLoading] = useState(false);
 
-  const predefinedCategories = ['work', 'personal', 'shopping'];
+  const predefinedCategories: Category[] = ['work', 'personal', 'shopping', 'health', 'other'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +103,7 @@ export function TodoForm({ onAddTodo }: TodoFormProps) {
           <select
             id="category"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => setCategory(e.target.value as Category)}
             className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             disabled={loading}
           >

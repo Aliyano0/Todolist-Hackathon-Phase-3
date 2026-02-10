@@ -4,7 +4,13 @@ import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
-export interface AnimatedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// Omit conflicting props between React and Framer Motion
+type MotionButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationEnd'
+>
+
+export interface AnimatedButtonProps extends MotionButtonProps {
   variant?: 'default' | 'glow'
   children: React.ReactNode
 }

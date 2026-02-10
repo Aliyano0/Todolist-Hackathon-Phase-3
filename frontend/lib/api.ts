@@ -1,7 +1,8 @@
 // API client for the Todo application with Better Auth integration
 // Better Auth manages JWT tokens in httpOnly cookies
 
-export type PriorityLevel = 'high' | 'medium' | 'low';
+export type PriorityLevel = 'high' | 'medium' | 'low' | 'none';
+export type Category = 'work' | 'personal' | 'shopping' | 'health' | 'other';
 
 export interface TodoItem {
   id: string;
@@ -9,7 +10,7 @@ export interface TodoItem {
   description?: string;
   completed: boolean;
   priority: PriorityLevel;
-  category: string;
+  category: Category;
   createdAt: string;
   updatedAt: string;
   userId: string;

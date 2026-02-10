@@ -9,7 +9,7 @@ import { Loader2, AlertCircle, Inbox } from 'lucide-react'
 export interface TaskListProps {
   tasks: Task[]
   isLoading: boolean
-  error?: string
+  error?: string | null
   onComplete: (taskId: string) => void
   onEdit: (taskId: string) => void
   onDelete: (taskId: string) => void
