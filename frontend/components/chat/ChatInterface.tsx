@@ -5,7 +5,7 @@ import { sendChatMessage, ChatApiError } from "@/lib/chatApi";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Info } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,13 +17,49 @@ interface ChatInterfaceProps {
   userId: string;
 }
 
+const STORAGE_KEY_PREFIX = "chat_interface_";
+
 export function ChatInterface({ userId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    if (userId) {
+      const savedMessages = localStorage.getItem(`${STORAGE_KEY_PREFIX}messages_${userId}`);
+      const savedConversationId = localStorage.getItem(`${STORAGE_KEY_PREFIX}conversation_${userId}`);
+
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          console.error("Failed to load chat history:", e);
+        }
+      }
+
+      if (savedConversationId) {
+        setConversationId(savedConversationId);
+      }
+    }
+  }, [userId]);
+
+  // Save chat history to localStorage whenever messages or conversationId change
+  useEffect(() => {
+    if (userId && messages.length > 0) {
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
+    }
+  }, [messages, userId]);
+
+  useEffect(() => {
+    if (userId && conversationId) {
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}conversation_${userId}`, conversationId);
+    }
+  }, [conversationId, userId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -62,6 +98,9 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
         timestamp: response.timestamp,
       };
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Emit event for real-time task updates
+      window.dispatchEvent(new CustomEvent("taskUpdated"));
     } catch (err) {
       if (err instanceof ChatApiError) {
         setError(err.message);
@@ -92,6 +131,43 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
 
   return (
     <div className="flex flex-col h-[600px] border border-border rounded-lg bg-card">
+      {/* Header with Info Button */}
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <h2 className="text-lg font-semibold text-foreground">AI Assistant</h2>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="p-2 hover:bg-muted rounded-md transition-colors"
+          aria-label="Show command guide"
+        >
+          <Info className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </div>
+
+      {/* Info Panel */}
+      {showInfo && (
+        <div className="bg-muted/30 border-b border-border p-4 text-sm space-y-3">
+          <div>
+            <p className="font-semibold text-foreground mb-2">Commands:</p>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• "Add task: [title]" - Create new task</li>
+              <li>• "List my tasks" - Show all tasks with numbers</li>
+              <li>• "Complete task #[number]" - Mark task as complete</li>
+              <li>• "Delete task #[number]" - Remove task</li>
+              <li>• "Update task #[number] title to [new title]" - Update task</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-foreground mb-2">Supported Languages:</p>
+            <p className="text-muted-foreground">English, Roman Urdu, Urdu</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground italic">
+              Task numbers are shown in the dashboard. Use them to reference specific tasks.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (

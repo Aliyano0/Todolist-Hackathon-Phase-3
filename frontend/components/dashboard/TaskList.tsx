@@ -77,10 +77,11 @@ export function TaskList({
       animate="visible"
       variants={containerVariants}
     >
-      {tasks.map((task) => (
+      {tasks.map((task, index) => (
         <motion.li key={task.id} variants={staggerItemVariants}>
           <TaskCard
             task={task}
+            taskNumber={index + 1}
             onComplete={onComplete}
             onEdit={onEdit}
             onDelete={onDelete}

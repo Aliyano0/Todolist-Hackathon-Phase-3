@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Maximize2, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Maximize2, Send, Loader2, Info } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { sendChatMessage, ChatApiError } from "@/lib/chatApi";
@@ -15,6 +15,8 @@ interface Message {
   timestamp: string;
 }
 
+const STORAGE_KEY_PREFIX = "chat_widget_";
+
 export function ChatWidget() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -24,7 +26,41 @@ export function ChatWidget() {
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    if (user?.id) {
+      const savedMessages = localStorage.getItem(`${STORAGE_KEY_PREFIX}messages_${user.id}`);
+      const savedConversationId = localStorage.getItem(`${STORAGE_KEY_PREFIX}conversation_${user.id}`);
+
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          console.error("Failed to load chat history:", e);
+        }
+      }
+
+      if (savedConversationId) {
+        setConversationId(savedConversationId);
+      }
+    }
+  }, [user?.id]);
+
+  // Save chat history to localStorage whenever messages or conversationId change
+  useEffect(() => {
+    if (user?.id && messages.length > 0) {
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${user.id}`, JSON.stringify(messages));
+    }
+  }, [messages, user?.id]);
+
+  useEffect(() => {
+    if (user?.id && conversationId) {
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}conversation_${user.id}`, conversationId);
+    }
+  }, [conversationId, user?.id]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -135,6 +171,13 @@ export function ChatWidget() {
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-5 h-5 text-primary" />
                 <h3 className="font-semibold text-foreground">AI Assistant</h3>
+                <button
+                  onClick={() => setShowInfo(!showInfo)}
+                  className="p-1 hover:bg-muted rounded-md transition-colors"
+                  aria-label="Show command guide"
+                >
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -153,6 +196,26 @@ export function ChatWidget() {
                 </button>
               </div>
             </div>
+
+            {/* Info Panel */}
+            {showInfo && (
+              <div className="bg-muted/30 border-b border-border p-3 text-xs space-y-2">
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Commands:</p>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>• "Add task: [title]" - Create new task</li>
+                    <li>• "List my tasks" - Show all tasks</li>
+                    <li>• "Complete task #[number]" - Mark complete</li>
+                    <li>• "Delete task #[number]" - Remove task</li>
+                    <li>• "Update task #[number] title to [new title]"</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Languages:</p>
+                  <p className="text-muted-foreground">English, Roman Urdu, Urdu</p>
+                </div>
+              </div>
+            )}
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
