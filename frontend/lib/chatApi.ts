@@ -44,12 +44,22 @@ export async function sendChatMessage(
   conversationId?: string
 ): Promise<ChatResponse> {
   try {
+    // Get JWT token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/${userId}/chat`, {
       method: "POST",
-      credentials: "include", // Send JWT cookie
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include",
+      headers,
       body: JSON.stringify({
         message,
         conversation_id: conversationId,
