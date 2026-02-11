@@ -66,7 +66,8 @@ export default function TodosPage() {
           return a.title.localeCompare(b.title)
         case 'date':
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          // Sort by creation date (oldest first) to match chatbot task numbering
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       }
     })
 
