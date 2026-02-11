@@ -17,9 +17,12 @@ export function EmailVerificationPrompt() {
     setMessage(null);
 
     try {
+      const token = localStorage.getItem('access_token');
       const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
         method: "POST",
-        credentials: "include", // Send JWT cookie
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {

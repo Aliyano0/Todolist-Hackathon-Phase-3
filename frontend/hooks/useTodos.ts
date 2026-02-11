@@ -15,6 +15,18 @@ export function useTodos() {
     }
   }, [isAuthenticated, user]);
 
+  // Listen for real-time task updates from chat widget
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      if (isAuthenticated && user) {
+        fetchTodos();
+      }
+    };
+
+    window.addEventListener('taskUpdated', handleTaskUpdate);
+    return () => window.removeEventListener('taskUpdated', handleTaskUpdate);
+  }, [isAuthenticated, user]);
+
   const fetchTodos = async () => {
     if (!user) {
       setError('User not authenticated');
