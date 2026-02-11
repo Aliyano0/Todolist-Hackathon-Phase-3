@@ -2,8 +2,9 @@
 
 **Feature Branch**: `021-ai-chatbot`
 **Created**: 2026-02-10
-**Status**: Draft
-**Input**: User description: "Phase III – Todo AI Chatbot (Basic Level) - Integrate an AI-powered conversational chatbot into the Phase 2 Todo web app, enabling users to manage Basic Level tasks (add, list, complete, delete, update) through natural language. The system uses a stateless agent architecture with DB-backed conversation persistence, MCP tools for task operations, OpenAI Agents SDK for logic, and OpenRouter for LLM inference. Ensure multi-user isolation, email verification enforcement, and multilingual support (English, Roman Urdu, Urdu)."
+**Updated**: 2026-02-11
+**Status**: Complete
+**Input**: User description: "Phase III – Todo AI Chatbot (Basic Level) - Integrate an AI-powered conversational chatbot into the Phase 2 Todo web app, enabling users to manage Basic Level tasks (add, list, complete, delete, update) through natural language. The system uses a stateless agent architecture with DB-backed conversation persistence, MCP tools for task operations, OpenAI Agents SDK for logic, and OpenRouter for LLM inference. Ensure multi-user isolation, email verification enforcement, and multilingual support (English, Roman Urdu, Urdu). Include floating chatbot widget with real-time task updates."
 
 ## Building on Existing Foundation
 
@@ -32,12 +33,14 @@
 - ✅ Dark mode support
 - ✅ Responsive design for mobile and desktop
 
-### Phase 3 Adds (NEW - 92 Tasks)
-- 🆕 **Email Verification Flow** (4 tasks): Send verification email on registration, verify endpoint, resend endpoint, JWT claim update
+### Phase 3 Adds (NEW - Complete)
+- 🆕 **Email Verification Flow** (4 tasks): Send verification email on registration, verify endpoint, resend endpoint (added to profile page), JWT claim update
 - 🆕 **Chat Infrastructure** (29 tasks): Conversation/Message models, MCP server with 5 tools, OpenAI Agents SDK integration, OpenRouter API client, chat service, chat endpoint, rate limiting
-- 🆕 **Chat UI** (11 tasks): ChatKit components, email verification prompt, conversation list, chat page
+- 🆕 **Chat UI** (11 tasks): Full chat page, ChatKit components, email verification prompt, conversation list, chat page
+- 🆕 **Chatbot Widget** (NEW): Floating widget in bottom-right corner with theme matching, animations, expand to full chat, real-time task updates
 - 🆕 **User Stories** (36 tasks): 7 independent user stories (task creation, listing, completion, deletion, update, conversation persistence, multilingual support)
 - 🆕 **Polish** (12 tasks): Error handling, retry logic, logging, loading states, dark mode consistency, documentation
+- 🆕 **Real-time Updates**: Event-based task synchronization between chat and dashboard
 
 ## Clarifications
 
@@ -277,15 +280,26 @@ A verified user wants to interact with the chatbot in their preferred language (
 - **FR-052**: Frontend MUST maintain dark mode and animation consistency with existing UI
 - **FR-053**: Frontend MUST display user messages, assistant responses, and tool execution results
 - **FR-054**: Frontend MUST display conversation list showing last message preview with timestamp, sorted by most recent activity
+- **FR-055**: Frontend MUST provide floating chatbot widget in bottom-right corner for quick access
+- **FR-056**: Chatbot widget MUST only appear for authenticated users with verified email
+- **FR-057**: Chatbot widget MUST use Framer Motion for smooth open/close animations
+- **FR-058**: Chatbot widget MUST match application theme (primary color for button, card background for widget)
+- **FR-059**: Chatbot widget MUST provide "Expand to full chat" button that redirects to /chat route
+- **FR-060**: Chatbot widget MUST be compact (96px width button, 500px height widget window)
+- **FR-061**: Chatbot widget MUST persist conversation across widget open/close cycles
+- **FR-062**: Frontend MUST dispatch 'taskUpdated' event after successful chat operations
+- **FR-063**: Dashboard MUST listen for 'taskUpdated' events and automatically refetch tasks
+- **FR-064**: Real-time updates MUST work without manual page refresh
+- **FR-065**: Profile page MUST show "Resend Verification Email" button for unverified users
 
 **Error Handling:**
 
-- **FR-055**: System MUST handle OpenRouter API errors gracefully and inform user
-- **FR-056**: System MUST handle database connection errors and retry with exponential backoff
-- **FR-057**: System MUST handle MCP tool errors and provide user-friendly error messages
-- **FR-058**: System MUST log all errors with sufficient context for debugging
-- **FR-059**: System MUST handle rate limiting from OpenRouter API
-- **FR-060**: System MUST enforce rate limit of 10 messages per minute per user to prevent abuse and manage API costs
+- **FR-066**: System MUST handle OpenRouter API errors gracefully and inform user
+- **FR-067**: System MUST handle database connection errors and retry with exponential backoff
+- **FR-068**: System MUST handle MCP tool errors and provide user-friendly error messages
+- **FR-069**: System MUST log all errors with sufficient context for debugging
+- **FR-070**: System MUST handle rate limiting from OpenRouter API
+- **FR-071**: System MUST enforce rate limit of 10 messages per minute per user to prevent abuse and manage API costs
 
 ### Key Entities
 
