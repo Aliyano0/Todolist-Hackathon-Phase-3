@@ -91,7 +91,11 @@ export default function ProfilePage() {
                               method: 'POST',
                               headers: {
                                 'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
                               },
+                              body: JSON.stringify({
+                                email: profile.email,
+                              }),
                             });
                             if (response.ok) {
                               alert('Verification email sent! Please check your inbox.');

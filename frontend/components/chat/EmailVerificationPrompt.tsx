@@ -5,14 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function EmailVerificationPrompt() {
+  const { user } = useAuth();
   const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleResendEmail = async () => {
+    if (!user?.email) {
+      setMessage({
+        type: "error",
+        text: "Unable to get user email. Please try logging in again.",
+      });
+      return;
+    }
+
     setIsResending(true);
     setMessage(null);
 
@@ -22,7 +32,11 @@ export function EmailVerificationPrompt() {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email: user.email,
+        }),
       });
 
       if (response.ok) {
