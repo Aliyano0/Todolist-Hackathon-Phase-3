@@ -118,8 +118,9 @@ async def register_user(user_data: UserRegisterRequest, session: AsyncSession = 
 
         # Send verification email
         try:
+            from main import get_email_service
             config = get_config()
-            email_service = EmailService()
+            email_service = get_email_service()
             verification_url = f"{config.frontend_url}/verify-email?token={verification_token}"
 
             await email_service.send_verification_email(
@@ -287,8 +288,9 @@ async def resend_verification_email(
 
         # Send verification email
         try:
+            from main import get_email_service
             config = get_config()
-            email_service = EmailService()
+            email_service = get_email_service()
             verification_url = f"{config.frontend_url}/verify-email?token={verification_token}"
 
             await email_service.send_verification_email(
