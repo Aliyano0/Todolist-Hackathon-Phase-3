@@ -106,7 +106,7 @@ async def lifespan(app: FastAPI):
     Validates required environment variables and fails fast if missing.
     """
     # Validate required environment variables on startup
-    required_vars = ["DATABASE_URL", "JWT_SECRET_KEY", "FRONTEND_URL"]
+    required_vars = ["DATABASE_URL", "JWT_SECRET_KEY", "FRONTEND_URL", "OPENROUTER_API_KEY"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:
@@ -136,6 +136,11 @@ async def lifespan(app: FastAPI):
     # Initialize email service
     init_email_service()
     logger.info("Email service initialized")
+
+    # Start rate limiter cleanup task
+    from api.middleware.rate_limit import chat_rate_limiter
+    await chat_rate_limiter.start_cleanup_task()
+    logger.info("Rate limiter cleanup task started")
 
     logger.info("Application startup complete")
 
@@ -192,6 +197,7 @@ async def add_security_headers(request: Request, call_next):
 
 from api.tasks import router as tasks_router
 from api.auth import router as auth_router
+from api.chat import router as chat_router
 
 # Include the authentication API router
 app.include_router(auth_router, prefix="/api", tags=["auth"])
@@ -199,6 +205,10 @@ app.include_router(auth_router, prefix="/api", tags=["auth"])
 # Include the tasks API router with user_id in path pattern
 # Router already has prefix="/{user_id}/tasks", so final pattern is /api/{user_id}/tasks
 app.include_router(tasks_router, prefix="/api")
+
+# Include the chat API router
+# Router already has prefix="/api", so final pattern is /api/{user_id}/chat
+app.include_router(chat_router)
 
 
 @app.get("/health")

@@ -142,6 +142,76 @@ async def list_tasks(
 - Database: Neon Serverless PostgreSQL with UUID primary keys for User and TodoTask entities
 - Authentication: Better Auth (frontend) + JWT verification (backend)
 - Database schema includes priority, category, and user_id fields in todotask table with user isolation
+- **Phase 3 (021-ai-chatbot)**: OpenRouter API (gpt-4o-mini), OpenAI Agents SDK, MCP SDK, aiosmtplib for email verification
+
+## Phase 3: AI Chatbot Integration (021-ai-chatbot)
+
+### Chat Service Architecture
+- **Stateless Agent**: Agent reconstructs conversation history from database on each request (last 20 messages)
+- **OpenRouter API**: LLM inference using gpt-4o-mini model for cost efficiency
+- **OpenAI Agents SDK**: Intent recognition and tool orchestration
+- **MCP Tools**: 5 tools for task operations (add, list, complete, delete, update) with user isolation
+- **Conversation Persistence**: Conversation and Message models store chat history in PostgreSQL
+- **Rate Limiting**: 10 messages per minute per user to prevent abuse
+
+### MCP Server Package (backend/mcp_server/)
+- **Location**: Runs in-process as Python package inside backend/ directory
+- **Tools**: All tools require user_id parameter for multi-user isolation
+- **Database**: Async operations using SQLModel with asyncpg
+- **Structure**:
+  ```
+  backend/mcp_server/
+  ├── __init__.py
+  ├── server.py              # MCP server entry point with tool registration
+  ├── tools/
+  │   ├── __init__.py
+  │   ├── add_task.py        # Add task tool
+  │   ├── list_tasks.py      # List tasks tool (with status filtering)
+  │   ├── complete_task.py   # Complete task tool
+  │   ├── delete_task.py     # Delete task tool
+  │   └── update_task.py     # Update task tool
+  └── tests/
+      ├── __init__.py
+      └── test_*.py          # Unit tests for each tool
+  ```
+
+### Email Verification Extension
+- **Context**: Extends existing Better Auth JWT system (018)
+- **User Model**: Already has email_verified and verification_token fields
+- **SMTP Service**: Already implemented with aiosmtplib (019)
+- **New Endpoints**:
+  - POST /api/auth/verify-email: Validate token and update email_verified
+  - POST /api/auth/resend-verification: Resend verification email
+- **JWT Update**: Include email_verified claim in token payload
+- **Chat Access**: Requires email_verified=true (403 if not verified)
+
+### Chat Service Components
+- **chat_service.py**: Conversation history loading, message persistence
+- **openrouter_client.py**: OpenRouter API wrapper with retry logic
+- **agent_service.py**: OpenAI Agents SDK integration with MCP tool registration
+- **chat.py (schemas)**: ChatRequest and ChatResponse schemas
+- **chat.py (api)**: POST /api/{user_id}/chat endpoint with email verification and rate limiting
+
+### Multilingual Support
+- **Languages**: English, Roman Urdu, Urdu
+- **Detection**: LLM-based language detection via prompt engineering
+- **Response**: Agent responds in detected language
+- **Tool Parameters**: Always in English regardless of input language
+
+### Environment Variables (Phase 3)
+```python
+# Required for Phase 3
+OPENROUTER_API_KEY: str    # OpenRouter API key for LLM inference
+
+# Already configured (018, 019)
+DATABASE_URL: str          # Neon PostgreSQL connection string
+JWT_SECRET_KEY: str        # JWT signing secret
+SMTP_HOST: str            # SMTP server hostname
+SMTP_USERNAME: str        # SMTP authentication username
+SMTP_PASSWORD: str        # SMTP authentication password
+SMTP_FROM_EMAIL: str      # Sender email address
+FRONTEND_URL: str         # Frontend URL for CORS
+```
 
 ## Production Deployment (019-production-deployment)
 
