@@ -74,7 +74,7 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   }, [userId]);
 
   // Save chat history to localStorage whenever messages change
-  // Note: Event emission happens only in handleSendMessage to avoid infinite loops
+  // Emit chatUpdated event AFTER saving to ensure other components get the latest data
   useEffect(() => {
     console.log("Messages state changed:", messages.length, "messages");
     console.log("Messages array:", messages);
@@ -82,6 +82,9 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
       console.log("Saving to localStorage with key:", `${STORAGE_KEY_PREFIX}messages_${userId}`);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
       console.log("Saved to localStorage successfully");
+      // Emit event AFTER saving to localStorage
+      window.dispatchEvent(new CustomEvent("chatUpdated"));
+      console.log("Emitted chatUpdated event");
     } else {
       console.log("Not saving - userId:", userId, "messages.length:", messages.length);
     }
@@ -137,9 +140,9 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
       console.log("Assistant message object:", assistantMessage);
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Emit events for real-time updates
+      // Emit taskUpdated event for task list UI refresh
+      // Note: chatUpdated event is emitted in useEffect after localStorage save
       window.dispatchEvent(new CustomEvent("taskUpdated"));
-      window.dispatchEvent(new CustomEvent("chatUpdated"));
     } catch (err) {
       if (err instanceof ChatApiError) {
         setError(err.message);
