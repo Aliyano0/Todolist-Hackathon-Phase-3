@@ -19,6 +19,7 @@ htmlcov/
 *.db
 *.sqlite
 .tox/
+.env.test
 
 # IDE
 .vscode/
@@ -37,6 +38,11 @@ htmlcov/
 docs/
 README.md
 CLAUDE.md
+ASYNC_CONVERSION_COMPLETE.md
+ASYNC_FIX_SUMMARY.md
+DEBUG_TODO_ERROR.md
+IMPLEMENTATION_STATUS.md
+SCHEMA_FIX.md
 
 # Environment
 .env
@@ -77,3 +83,18 @@ mypy.ini
 setup.py
 setup.cfg
 pyproject.toml
+
+# MCP Server (tests only, keep tools)
+mcp_server/tests/
+
+# Migration scripts (keep alembic/ but exclude temp files)
+alembic/versions/*.pyc
+alembic/__pycache__/
+
+# Specs and history (not needed in production)
+../specs/
+../history/
+
+# UV package manager cache
+.uv/
+uv.lock
