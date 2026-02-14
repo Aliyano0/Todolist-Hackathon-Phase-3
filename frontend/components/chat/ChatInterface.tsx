@@ -17,7 +17,7 @@ interface ChatInterfaceProps {
   userId: string;
 }
 
-const STORAGE_KEY_PREFIX = "chat_interface_";
+const STORAGE_KEY_PREFIX = "chat_shared_";
 
 export function ChatInterface({ userId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -48,10 +48,37 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
     }
   }, [userId]);
 
+  // Listen for chat updates from other components (e.g., ChatWidget)
+  useEffect(() => {
+    const handleChatUpdate = () => {
+      if (userId) {
+        const savedMessages = localStorage.getItem(`${STORAGE_KEY_PREFIX}messages_${userId}`);
+        const savedConversationId = localStorage.getItem(`${STORAGE_KEY_PREFIX}conversation_${userId}`);
+
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+          } catch (e) {
+            console.error("Failed to reload chat history:", e);
+          }
+        }
+
+        if (savedConversationId) {
+          setConversationId(savedConversationId);
+        }
+      }
+    };
+
+    window.addEventListener("chatUpdated", handleChatUpdate);
+    return () => window.removeEventListener("chatUpdated", handleChatUpdate);
+  }, [userId]);
+
   // Save chat history to localStorage whenever messages or conversationId change
   useEffect(() => {
     if (userId && messages.length > 0) {
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
+      // Emit event to notify other components
+      window.dispatchEvent(new CustomEvent("chatUpdated"));
     }
   }, [messages, userId]);
 
@@ -99,8 +126,9 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Emit event for real-time task updates
+      // Emit events for real-time updates
       window.dispatchEvent(new CustomEvent("taskUpdated"));
+      window.dispatchEvent(new CustomEvent("chatUpdated"));
     } catch (err) {
       if (err instanceof ChatApiError) {
         setError(err.message);

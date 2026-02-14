@@ -14,13 +14,15 @@ from schemas.chat import ChatRequest, ChatResponse, ChatErrorResponse
 from dependencies.auth import get_verified_user
 from api.middleware.rate_limit import rate_limit_dependency
 from core.services.chat_service import ChatService
-from core.services.openrouter_client import OpenRouterClient, OpenRouterError
 from core.services.agent_service import AgentService
 from models.user import User
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["chat"])
+
+# Initialize agent service once at module load for performance
+agent_service = AgentService()
 
 
 @router.post(
@@ -102,11 +104,11 @@ async def chat(
                     detail="Conversation not found or access denied"
                 )
 
-            # Load conversation history (last 20 messages)
+            # Load conversation history (last 5 messages for optimal performance)
             conversation_history = await ChatService.load_conversation_history(
                 conversation_uuid,
                 user_uuid,
-                limit=20
+                limit=5
             )
         else:
             # Create new conversation
@@ -121,19 +123,15 @@ async def chat(
             content=request.message
         )
 
-        # Initialize OpenRouter client and agent service
-        openrouter_client = OpenRouterClient()
-        agent_service = AgentService(openrouter_client)
-
-        # Process message with agent
+        # Process message with agent (singleton instance initialized at module load)
         try:
             agent_response = await agent_service.process_message(
                 user_id=user_id,
                 user_message=request.message,
                 conversation_history=conversation_history
             )
-        except OpenRouterError as e:
-            logger.error(f"OpenRouter API error for user {user_id}: {str(e)}")
+        except Exception as e:
+            logger.error(f"Agent processing error for user {user_id}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="AI service temporarily unavailable. Please try again later."

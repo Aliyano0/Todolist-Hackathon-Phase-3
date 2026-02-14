@@ -15,7 +15,7 @@ interface Message {
   timestamp: string;
 }
 
-const STORAGE_KEY_PREFIX = "chat_widget_";
+const STORAGE_KEY_PREFIX = "chat_shared_";
 
 export function ChatWidget() {
   const { user, isAuthenticated } = useAuth();
@@ -49,10 +49,37 @@ export function ChatWidget() {
     }
   }, [user?.id]);
 
+  // Listen for chat updates from other components (e.g., ChatInterface)
+  useEffect(() => {
+    const handleChatUpdate = () => {
+      if (user?.id) {
+        const savedMessages = localStorage.getItem(`${STORAGE_KEY_PREFIX}messages_${user.id}`);
+        const savedConversationId = localStorage.getItem(`${STORAGE_KEY_PREFIX}conversation_${user.id}`);
+
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+          } catch (e) {
+            console.error("Failed to reload chat history:", e);
+          }
+        }
+
+        if (savedConversationId) {
+          setConversationId(savedConversationId);
+        }
+      }
+    };
+
+    window.addEventListener("chatUpdated", handleChatUpdate);
+    return () => window.removeEventListener("chatUpdated", handleChatUpdate);
+  }, [user?.id]);
+
   // Save chat history to localStorage whenever messages or conversationId change
   useEffect(() => {
     if (user?.id && messages.length > 0) {
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${user.id}`, JSON.stringify(messages));
+      // Emit event to notify other components
+      window.dispatchEvent(new CustomEvent("chatUpdated"));
     }
   }, [messages, user?.id]);
 
@@ -112,8 +139,9 @@ export function ChatWidget() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Emit event for real-time task updates
+      // Emit events for real-time updates
       window.dispatchEvent(new CustomEvent("taskUpdated"));
+      window.dispatchEvent(new CustomEvent("chatUpdated"));
     } catch (err) {
       if (err instanceof ChatApiError) {
         setError(err.message);

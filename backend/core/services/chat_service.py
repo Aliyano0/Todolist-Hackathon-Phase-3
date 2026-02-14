@@ -195,7 +195,7 @@ class ChatService:
     async def load_conversation_history(
         conversation_id: uuid.UUID,
         user_id: uuid.UUID,
-        limit: int = 20
+        limit: int = 5
     ) -> List[Dict[str, Any]]:
         """
         Load conversation history (last N messages) for agent context
@@ -203,7 +203,7 @@ class ChatService:
         Args:
             conversation_id: UUID of the conversation
             user_id: UUID of the user (for isolation)
-            limit: Maximum number of messages to load (default: 20)
+            limit: Maximum number of messages to load (default: 5, optimized for performance)
 
         Returns:
             List of message dictionaries with role and content
@@ -213,22 +213,15 @@ class ChatService:
         """
         try:
             async with get_async_session() as session:
-                # Verify conversation belongs to user
-                conversation_statement = select(Conversation).where(
-                    Conversation.id == conversation_id,
-                    Conversation.user_id == user_id
-                )
-                conversation_result = await session.execute(conversation_statement)
-                conversation = conversation_result.scalar_one_or_none()
-
-                if not conversation:
-                    logger.warning(f"Conversation {conversation_id} not found for user {user_id}")
-                    raise Exception("Conversation not found or access denied")
-
-                # Load last N messages
+                # Load last N messages with user isolation (single query optimization)
+                # Join with conversation to verify user_id in one query
                 statement = (
                     select(Message)
-                    .where(Message.conversation_id == conversation_id)
+                    .join(Conversation, Message.conversation_id == Conversation.id)
+                    .where(
+                        Message.conversation_id == conversation_id,
+                        Conversation.user_id == user_id
+                    )
                     .order_by(desc(Message.created_at))
                     .limit(limit)
                 )

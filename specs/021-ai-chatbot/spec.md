@@ -34,13 +34,17 @@
 - ✅ Responsive design for mobile and desktop
 
 ### Phase 3 Adds (NEW - Complete)
-- 🆕 **Email Verification Flow** (4 tasks): Send verification email on registration, verify endpoint, resend endpoint (added to profile page), JWT claim update
+- 🆕 **Email Verification Flow** (4 tasks): Send verification email on registration, verify endpoint, resend endpoint (added to profile page), JWT claim update, verify-email page for handling verification links
 - 🆕 **Chat Infrastructure** (29 tasks): Conversation/Message models, MCP server with 5 tools, OpenAI Agents SDK integration, OpenRouter API client, chat service, chat endpoint, rate limiting
 - 🆕 **Chat UI** (11 tasks): Full chat page, ChatKit components, email verification prompt, conversation list, chat page
-- 🆕 **Chatbot Widget** (NEW): Floating widget in bottom-right corner with theme matching, animations, expand to full chat, real-time task updates
+- 🆕 **Chatbot Widget** (NEW): Floating widget in bottom-right corner with theme matching, animations, expand to full chat, real-time task updates, chat history persistence, Info icon with command guide
+- 🆕 **Chat History Persistence**: Messages and conversation IDs saved to localStorage per user, persists across page refreshes and widget open/close
+- 🆕 **Task Numbering System**: Tasks display numbered badges (#1, #2, etc.) for easy chatbot reference, consistent numbering between dashboard and chatbot (oldest = #1), newest tasks displayed at top
+- 🆕 **Command Guide**: Info icon in both widget and full chat page showing available commands, supported languages, and task number usage
 - 🆕 **User Stories** (36 tasks): 7 independent user stories (task creation, listing, completion, deletion, update, conversation persistence, multilingual support)
 - 🆕 **Polish** (12 tasks): Error handling, retry logic, logging, loading states, dark mode consistency, documentation
 - 🆕 **Real-time Updates**: Event-based task synchronization between chat and dashboard
+- 🆕 **Bug Fixes**: Email verification resend (422/500 errors), chat API authentication (401 error), datetime import, email service instantiation
 
 ## Clarifications
 
@@ -291,15 +295,45 @@ A verified user wants to interact with the chatbot in their preferred language (
 - **FR-063**: Dashboard MUST listen for 'taskUpdated' events and automatically refetch tasks
 - **FR-064**: Real-time updates MUST work without manual page refresh
 - **FR-065**: Profile page MUST show "Resend Verification Email" button for unverified users
+- **FR-066**: System MUST provide /verify-email page to handle email verification links from emails
+- **FR-067**: Verify-email page MUST extract token from URL query parameter and call backend verification endpoint
+- **FR-068**: Verify-email page MUST show loading, success, and error states with appropriate icons
+- **FR-069**: Verify-email page MUST auto-redirect to login after successful verification (3 seconds)
+
+**Chat History Persistence:**
+
+- **FR-070**: ChatWidget MUST save messages and conversationId to localStorage per user
+- **FR-071**: ChatInterface MUST save messages and conversationId to localStorage per user
+- **FR-072**: Chat history MUST persist across page refreshes and widget open/close cycles
+- **FR-073**: Chat history MUST use separate storage keys per user to prevent data mixing
+- **FR-074**: Chat history MUST load automatically on component mount if available
+
+**Task Numbering System:**
+
+- **FR-075**: TaskCard MUST display task number badge (#1, #2, etc.) next to task title
+- **FR-076**: Task numbers MUST be calculated based on creation date (oldest = #1)
+- **FR-077**: Task numbers MUST be consistent between dashboard and chatbot
+- **FR-078**: Dashboard MUST display newest tasks at top while maintaining stable numbering
+- **FR-079**: Chatbot list_tasks tool MUST return tasks ordered by creation date (oldest first)
+- **FR-080**: Task numbers MUST remain stable and not change when tasks are added or deleted
+
+**Command Guide:**
+
+- **FR-081**: ChatWidget MUST provide Info icon in header next to "AI Assistant" title
+- **FR-082**: ChatInterface MUST provide Info icon in header next to "AI Assistant" title
+- **FR-083**: Info icon MUST toggle collapsible panel showing available commands
+- **FR-084**: Command guide MUST list all available commands (add, list, complete, delete, update)
+- **FR-085**: Command guide MUST show supported languages (English, Roman Urdu, Urdu)
+- **FR-086**: Command guide MUST explain task number usage for referencing tasks
 
 **Error Handling:**
 
-- **FR-066**: System MUST handle OpenRouter API errors gracefully and inform user
-- **FR-067**: System MUST handle database connection errors and retry with exponential backoff
-- **FR-068**: System MUST handle MCP tool errors and provide user-friendly error messages
-- **FR-069**: System MUST log all errors with sufficient context for debugging
-- **FR-070**: System MUST handle rate limiting from OpenRouter API
-- **FR-071**: System MUST enforce rate limit of 10 messages per minute per user to prevent abuse and manage API costs
+- **FR-087**: System MUST handle OpenRouter API errors gracefully and inform user
+- **FR-088**: System MUST handle database connection errors and retry with exponential backoff
+- **FR-089**: System MUST handle MCP tool errors and provide user-friendly error messages
+- **FR-090**: System MUST log all errors with sufficient context for debugging
+- **FR-091**: System MUST handle rate limiting from OpenRouter API
+- **FR-092**: System MUST enforce rate limit of 10 messages per minute per user to prevent abuse and manage API costs
 
 ### Key Entities
 

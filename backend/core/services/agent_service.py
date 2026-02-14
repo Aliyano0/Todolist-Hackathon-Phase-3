@@ -3,16 +3,242 @@ Agent Service
 
 Integrates OpenAI Agents SDK with MCP tools for task management.
 Handles intent recognition, tool orchestration, and multilingual support.
+
+Architecture:
+- Uses OpenAI Agents SDK for proper agentic workflow (not manual function calling)
+- Configures SDK to use OpenRouter API (gpt-4o-mini) instead of OpenAI API
+- Registers 5 MCP tools with @function_tool decorator for automatic schema extraction
+- Injects user_id from context for security (not exposed to agent)
+- Maintains stateless architecture (loads conversation history from database)
+- Supports multilingual conversations (English, Roman Urdu, Urdu)
+
+Key Components:
+- _configure_openrouter_client(): Sets up custom AsyncOpenAI client for OpenRouter
+- Tool wrapper functions: Decorated with @function_tool, inject user_id from context
+- agent: Global Agent instance initialized at module load
+- AgentService: Service class that processes messages using Runner.run()
 """
 
 from typing import List, Dict, Any, Optional
-import uuid
+import os
 import logging
 from openai import AsyncOpenAI
-from mcp_server.server import get_all_tools
-from core.services.openrouter_client import OpenRouterClient
+from agents import Agent, Runner, set_default_openai_client, function_tool, RunContextWrapper, set_tracing_disabled
+
 
 logger = logging.getLogger(__name__)
+
+
+# Import MCP tools
+from mcp_server.tools.add_task import add_task_tool
+from mcp_server.tools.list_tasks import list_tasks_tool
+from mcp_server.tools.complete_task import complete_task_tool
+from mcp_server.tools.delete_task import delete_task_tool
+from mcp_server.tools.update_task import update_task_tool
+
+
+# Configure OpenRouter client for OpenAI Agents SDK
+def _configure_openrouter_client():
+    """
+    Configure OpenAI Agents SDK to use OpenRouter API
+
+    Raises:
+        ValueError: If OPENROUTER_API_KEY is not set
+    """
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "OPENROUTER_API_KEY environment variable is required. "
+            "Please set it in your .env file or environment."
+        )
+
+    # Create custom AsyncOpenAI client pointing to OpenRouter
+    custom_client = AsyncOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key
+    )
+
+    # Set as default client for all agents
+    set_default_openai_client(custom_client)
+    logger.info("Configured OpenAI Agents SDK to use OpenRouter API")
+
+
+# Disable OpenAI tracing (we use OpenRouter, not OpenAI)
+
+set_tracing_disabled(True)
+logger.info("🔇 OpenAI Agents SDK tracing disabled")
+
+# Configure OpenRouter on module load
+try:
+    _configure_openrouter_client()
+    logger.info("✅ OpenAI Agents SDK configured successfully with OpenRouter API")
+except ValueError as e:
+    logger.error(f"❌ Failed to configure OpenAI Agents SDK: {str(e)}")
+    raise
+
+
+# Wrap MCP tools with @function_tool decorator for SDK registration
+# Note: user_id is injected from context, not exposed to the agent
+@function_tool
+async def add_task(
+    ctx: RunContextWrapper[Any],
+    title: str,
+    description: Optional[str] = None,
+    priority: Optional[str] = None,
+    category: Optional[str] = None
+) -> dict:
+    """
+    Add a new task for the user.
+
+    Args:
+        title: Task title (required)
+        description: Task description (optional)
+        priority: Task priority - low, medium, or high (optional)
+        category: Task category (optional)
+
+    Returns:
+        Dictionary with task_id, status, and task details
+    """
+    user_id = ctx.context.get("user_id")
+    logger.debug(f"Tool called: add_task for user {user_id}, title='{title}'")
+    result = await add_task_tool(user_id, title, description, priority, category)
+    logger.info(f"✅ Task created: {result.get('task_id')} for user {user_id}")
+    return result
+
+
+@function_tool
+async def list_tasks(
+    ctx: RunContextWrapper[Any],
+    status: Optional[str] = "all"
+) -> dict:
+    """
+    List tasks for the user with optional status filtering.
+
+    Args:
+        status: Filter by status - "all", "pending", or "completed" (default: "all")
+
+    Returns:
+        Dictionary with tasks list and count
+    """
+    user_id = ctx.context.get("user_id")
+    logger.debug(f"Tool called: list_tasks for user {user_id}, status='{status}'")
+    result = await list_tasks_tool(user_id, status)
+    logger.info(f"✅ Listed {result.get('count', 0)} tasks for user {user_id}")
+    return result
+
+
+@function_tool
+async def complete_task(
+    ctx: RunContextWrapper[Any],
+    task_id: str
+) -> dict:
+    """
+    Mark a task as completed.
+
+    Args:
+        task_id: UUID of the task to complete
+
+    Returns:
+        Dictionary with task_id, status, and title
+    """
+    user_id = ctx.context.get("user_id")
+    logger.debug(f"Tool called: complete_task for user {user_id}, task_id={task_id}")
+    result = await complete_task_tool(user_id, task_id)
+    logger.info(f"✅ Task completed: {task_id} for user {user_id}")
+    return result
+
+
+@function_tool
+async def delete_task(
+    ctx: RunContextWrapper[Any],
+    task_id: str
+) -> dict:
+    """
+    Delete a task for the user.
+
+    Args:
+        task_id: UUID of the task to delete
+
+    Returns:
+        Dictionary with task_id, status, and title
+    """
+    user_id = ctx.context.get("user_id")
+    logger.debug(f"Tool called: delete_task for user {user_id}, task_id={task_id}")
+    result = await delete_task_tool(user_id, task_id)
+    logger.info(f"✅ Task deleted: {task_id} for user {user_id}")
+    return result
+
+
+@function_tool
+async def update_task(
+    ctx: RunContextWrapper[Any],
+    task_id: str,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    priority: Optional[str] = None,
+    category: Optional[str] = None
+) -> dict:
+    """
+    Update a task's title, description, priority, and/or category.
+
+    Args:
+        task_id: UUID of the task to update
+        title: New task title (optional)
+        description: New task description (optional)
+        priority: New task priority - "low", "medium", or "high" (optional)
+        category: New task category (optional)
+
+    Returns:
+        Dictionary with task_id, status, and updated fields
+    """
+    user_id = ctx.context.get("user_id")
+    logger.debug(f"Tool called: update_task for user {user_id}, task_id={task_id}")
+    result = await update_task_tool(user_id, task_id, title, description, priority, category)
+    logger.info(f"✅ Task updated: {task_id} for user {user_id} (fields: {result.get('updated_fields', [])})")
+    return result
+
+
+# Create Agent instance with tools and instructions
+# Note: Agent is initialized at module load for efficiency
+agent = Agent(
+    name="TodoAssistant",
+    model="gpt-4o-mini",
+    instructions="""You are a helpful task management assistant. You help users manage their todo tasks through natural conversation.
+
+**Your Capabilities:**
+- Add tasks (with optional priority: low/medium/high, and category)
+- List tasks (all, pending, or completed)
+- Mark tasks as complete
+- Delete tasks (with confirmation)
+- Update tasks (title, description, priority, category)
+
+**Language Support:**
+Detect the user's language and respond in the SAME language (English, Roman Urdu, or Urdu). Use English for tool parameter values.
+
+**Task Numbering:**
+Tasks are numbered starting from 1. When users say "task 1", use the task_id from position 1 in the list.
+
+**Guidelines:**
+1. Be friendly and confirm actions
+2. Ask for clarification when needed
+3. ALWAYS confirm before deleting tasks
+4. If updating without specifying what, ask what to change
+
+**Examples:**
+
+User: "Add task: buy groceries" → add_task(title="buy groceries")
+User: "Add high priority task: report" → add_task(title="report", priority="high")
+User: "Show my tasks" → list_tasks(status="all")
+User: "Mark task 1 done" → list_tasks() to get task_id, then complete_task(task_id=...)
+User: "Change task 2 priority to high" → list_tasks() to get task_id, then update_task(task_id=..., priority="high")
+User: "Set task 3 category to work" → list_tasks() to get task_id, then update_task(task_id=..., category="work")
+User: "Delete task 2" → Ask confirmation first
+
+**Security**: You have access to current user's tasks only. Never mention user_id.""",
+    tools=[add_task, list_tasks, complete_task, delete_task, update_task]
+)
+
+logger.info(f"🤖 Agent initialized: {agent.name} with {len(agent.tools)} tools")
 
 
 class AgentService:
@@ -23,113 +249,34 @@ class AgentService:
     Supports multilingual conversations (English, Roman Urdu, Urdu).
     """
 
-    SYSTEM_PROMPT = """You are a helpful task management assistant. You help users manage their todo tasks through natural conversation.
+    def __init__(self):
+        """Initialize agent service with OpenAI Agents SDK"""
+        logger.info(f"Initialized AgentService with OpenAI Agents SDK (5 MCP tools registered)")
 
-**Your Capabilities:**
-- Add new tasks when users describe things they need to do
-- List tasks (all, pending, or completed)
-- Mark tasks as complete
-- Delete tasks (with confirmation)
-- Update task details (title, description)
-
-**Language Support:**
-You can understand and respond in:
-- English
-- Roman Urdu (Urdu written in Latin script)
-- Urdu (written in Urdu script)
-
-Detect the user's language from their message and respond in the same language. However, when calling tools, always use English for parameter values.
-
-**Task Numbering:**
-When listing tasks, they are numbered starting from 1 (position 1, 2, 3...). When users refer to "task 1" or "first task", use the task_id from position 1.
-
-**Conversation Guidelines:**
-1. Be friendly and conversational
-2. Confirm actions after completing them
-3. Ask for clarification when needed
-4. For destructive actions (delete), ask for confirmation first
-5. If a user says "update task 1" without specifying what to update, ask what they want to change
-
-**Examples:**
-
-User: "Add task: buy groceries"
-You: Call add_task with title="buy groceries", then respond: "I've added 'buy groceries' to your tasks!"
-
-User: "Show my tasks"
-You: Call list_tasks with status="all", then format and display the results
-
-User: "Mark task 1 as done"
-You: Call list_tasks to get task_id for position 1, then call complete_task with that task_id
-
-User: "Delete task 2"
-You: Ask "Are you sure you want to delete task 2?" and wait for confirmation
-
-User: "Mujhe apne tasks dikhao" (Roman Urdu)
-You: Call list_tasks, then respond in Roman Urdu: "Yeh hain aapke tasks..."
-
-Remember: Always maintain user_id isolation - only access tasks belonging to the current user."""
-
-    def __init__(self, openrouter_client: OpenRouterClient):
+    def _convert_conversation_history(
+        self,
+        conversation_history: Optional[List[Dict[str, str]]] = None
+    ) -> List[Dict[str, str]]:
         """
-        Initialize agent service
+        Convert database message objects to SDK input list format
 
         Args:
-            openrouter_client: OpenRouter API client for LLM inference
-        """
-        self.openrouter_client = openrouter_client
-        self.tools = get_all_tools()
-        logger.info(f"Initialized AgentService with {len(self.tools)} MCP tools")
-
-    def _convert_tools_to_openai_format(self) -> List[Dict[str, Any]]:
-        """
-        Convert MCP tools to OpenAI function calling format
+            conversation_history: List of message dicts with 'role' and 'content'
 
         Returns:
-            List of tool definitions in OpenAI format
+            List of messages in SDK format [{"role": "user"|"assistant", "content": "..."}]
         """
-        openai_tools = []
+        if not conversation_history:
+            return []
 
-        for tool in self.tools:
-            # Extract function metadata
-            func_name = tool.__name__
-            func_doc = tool.__doc__ or ""
-
-            # Parse function signature for parameters
-            import inspect
-            sig = inspect.signature(tool)
-
-            parameters = {
-                "type": "object",
-                "properties": {},
-                "required": []
+        # Convert to SDK format (already in correct format from chat_service)
+        return [
+            {
+                "role": msg["role"],
+                "content": msg["content"]
             }
-
-            for param_name, param in sig.parameters.items():
-                param_type = "string"  # Default to string
-                param_desc = f"{param_name} parameter"
-
-                # Determine if required (no default value)
-                if param.default == inspect.Parameter.empty:
-                    parameters["required"].append(param_name)
-
-                parameters["properties"][param_name] = {
-                    "type": param_type,
-                    "description": param_desc
-                }
-
-            tool_def = {
-                "type": "function",
-                "function": {
-                    "name": func_name,
-                    "description": func_doc.strip().split('\n')[0] if func_doc else func_name,
-                    "parameters": parameters
-                }
-            }
-
-            openai_tools.append(tool_def)
-
-        logger.info(f"Converted {len(openai_tools)} tools to OpenAI format")
-        return openai_tools
+            for msg in conversation_history
+        ]
 
     async def process_message(
         self,
@@ -152,122 +299,39 @@ Remember: Always maintain user_id isolation - only access tasks belonging to the
             Exception: If processing fails
         """
         try:
-            # Build messages list with system prompt and history
-            messages = [{"role": "system", "content": self.SYSTEM_PROMPT}]
+            # Convert conversation history to SDK input format
+            input_list = self._convert_conversation_history(conversation_history)
 
-            # Add conversation history if provided
-            if conversation_history:
-                messages.extend(conversation_history)
+            # Log conversation context
+            history_length = len(input_list)
+            logger.info(f"🔄 Processing message for user {user_id} (history: {history_length} messages)")
+            logger.debug(f"User message: {user_message[:100]}...")
 
             # Add current user message
-            messages.append({"role": "user", "content": user_message})
+            input_list.append({
+                "role": "user",
+                "content": user_message
+            })
 
-            # Convert tools to OpenAI format
-            tools = self._convert_tools_to_openai_format()
+            # Run agent with conversation history and user_id context
+            # user_id is injected into context for tool access
+            # SDK handles multi-turn state management within this call
+            logger.debug(f"🤖 Running agent with {len(input_list)} messages in context")
+            result = await Runner.run(agent, input_list, context={"user_id": user_id})
 
-            # Call OpenRouter API with tools
-            response = await self.openrouter_client.chat_completion(
-                messages=messages,
-                temperature=0.7,
-                tools=tools if tools else None
-            )
+            # Extract final response
+            response_content = result.final_output
 
-            # Check if agent wants to call tools
-            tool_calls = self.openrouter_client.extract_tool_calls(response)
+            # Log multi-turn conversation metrics
+            logger.info(f"✅ Agent response generated for user {user_id} (response length: {len(response_content)} chars)")
+            logger.debug(f"Agent response: {response_content[:100]}...")
 
-            if tool_calls:
-                # Execute tool calls
-                tool_results = await self._execute_tool_calls(tool_calls, user_id)
-
-                # Add assistant message with tool calls to history
-                messages.append(response["choices"][0]["message"])
-
-                # Add tool results to messages
-                for tool_result in tool_results:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tool_result["tool_call_id"],
-                        "content": tool_result["content"]
-                    })
-
-                # Get final response from agent
-                final_response = await self.openrouter_client.chat_completion(
-                    messages=messages,
-                    temperature=0.7
-                )
-
-                response_content = self.openrouter_client.extract_message_content(final_response)
-            else:
-                # No tool calls, just return the response
-                response_content = self.openrouter_client.extract_message_content(response)
-
-            logger.info(f"Processed message for user {user_id}")
             return response_content
 
         except Exception as e:
-            logger.error(f"Error processing message for user {user_id}: {str(e)}")
-            raise Exception(f"Failed to process message: {str(e)}")
-
-    async def _execute_tool_calls(
-        self,
-        tool_calls: List[Dict[str, Any]],
-        user_id: str
-    ) -> List[Dict[str, Any]]:
-        """
-        Execute tool calls and return results
-
-        Args:
-            tool_calls: List of tool call objects from OpenAI response
-            user_id: UUID of the user (injected into all tool calls)
-
-        Returns:
-            List of tool result dictionaries
-
-        Raises:
-            Exception: If tool execution fails
-        """
-        results = []
-
-        for tool_call in tool_calls:
-            tool_name = tool_call["function"]["name"]
-            tool_args = eval(tool_call["function"]["arguments"])  # Parse JSON string to dict
-
-            # Inject user_id into tool arguments
-            tool_args["user_id"] = user_id
-
-            try:
-                # Find and execute the tool
-                tool_func = None
-                for tool in self.tools:
-                    if tool.__name__ == tool_name:
-                        tool_func = tool
-                        break
-
-                if not tool_func:
-                    raise Exception(f"Tool not found: {tool_name}")
-
-                # Execute tool
-                result = await tool_func(**tool_args)
-
-                # Format result as JSON string
-                import json
-                result_content = json.dumps(result)
-
-                results.append({
-                    "tool_call_id": tool_call["id"],
-                    "content": result_content
-                })
-
-                logger.info(f"Executed tool {tool_name} for user {user_id}")
-
-            except Exception as e:
-                logger.error(f"Error executing tool {tool_name}: {str(e)}")
-                results.append({
-                    "tool_call_id": tool_call["id"],
-                    "content": json.dumps({"error": str(e)})
-                })
-
-        return results
+            logger.error(f"❌ Error processing message for user {user_id}: {str(e)}", exc_info=True)
+            # Return user-friendly error message
+            return "I encountered an error processing your request. Please try again or rephrase your message."
 
 
 __all__ = ['AgentService']

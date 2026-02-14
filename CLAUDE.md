@@ -234,6 +234,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - N/A (frontend only - uses existing backend API) (020-frontend-ui-upgrade)
 - Python 3.13+ (backend/MCP server), TypeScript 5.0+ (frontend) + FastAPI, SQLModel, asyncpg==0.30.0, OpenAI Agents SDK, Official MCP SDK, OpenRouter API (gpt-4o-mini), OpenAI ChatKit, Next.js 16.1+, Better Auth, Shadcn UI (021-ai-chatbot)
 - Neon Serverless PostgreSQL (postgres 17) with asyncpg driver and SQLModel ORM (021-ai-chatbot)
+- Python 3.13+ + OpenAI Agents SDK (openai-agents==0.8.3), FastAPI, SQLModel, asyncpg==0.30.0, OpenRouter API client (022-openai-agents-sdk)
 
 ## Recent Changes
 - 001-todo-console-app: Added Python 3.13+ + None (standard library only)
