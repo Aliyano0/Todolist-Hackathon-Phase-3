@@ -14,8 +14,10 @@ from pydantic import BaseModel, EmailStr, Field
 from core.security.password import hash_password, verify_password
 from core.services.email_service import EmailService
 from core.config import get_config
+from datetime import datetime
 import logging
 import re
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -99,16 +101,36 @@ async def register_user(user_data: UserRegisterRequest, session: AsyncSession = 
         # Hash password
         password_hash = hash_password(user_data.password)
 
+        # Generate verification token
+        verification_token = secrets.token_urlsafe(32)
+
         # Create new user
         new_user = User(
             email=user_data.email,
             password_hash=password_hash,
-            email_verified=False
+            email_verified=False,
+            verification_token=verification_token
         )
 
         session.add(new_user)
         await session.commit()
         await session.refresh(new_user)
+
+        # Send verification email
+        try:
+            from main import get_email_service
+            config = get_config()
+            email_service = get_email_service()
+            verification_url = f"{config.frontend_url}/verify-email?token={verification_token}"
+
+            await email_service.send_verification_email(
+                to_email=new_user.email,
+                verification_url=verification_url
+            )
+            logger.info(f"Verification email sent to: {new_user.email}")
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {new_user.email}: {str(e)}")
+            # Don't fail registration if email fails - user can resend later
 
         logger.info(f"User registered successfully: {user_data.email} (user_id: {new_user.id})")
 
@@ -141,6 +163,161 @@ async def register_user(user_data: UserRegisterRequest, session: AsyncSession = 
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+@router.post("/verify-email")
+async def verify_email(
+    request: VerifyEmailRequest,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Verify user's email address using verification token
+
+    Args:
+        request: Contains verification token
+        session: Database session
+
+    Returns:
+        Success message if verification successful
+
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
+    try:
+        logger.info(f"Email verification attempt with token: {request.token[:10]}...")
+
+        # Find user with this verification token
+        statement = select(User).where(User.verification_token == request.token)
+        result = await session.execute(statement)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            logger.warning(f"Invalid verification token: {request.token[:10]}...")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired verification token"
+            )
+
+        # Check if already verified
+        if user.email_verified:
+            logger.info(f"Email already verified for user: {user.email}")
+            return {
+                "message": "Email already verified",
+                "email": user.email
+            }
+
+        # Update user
+        user.email_verified = True
+        user.verification_token = None  # Clear token after use
+        user.updated_at = datetime.utcnow()
+
+        await session.commit()
+
+        logger.info(f"Email verified successfully for user: {user.email}")
+
+        return {
+            "message": "Email verified successfully",
+            "email": user.email
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Email verification error: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred during email verification"
+        )
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+@router.post("/resend-verification")
+async def resend_verification_email(
+    request: ResendVerificationRequest,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Resend verification email to user
+
+    Args:
+        request: Contains user email
+        session: Database session
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If user not found or already verified
+    """
+    try:
+        logger.info(f"Resend verification request for email: {request.email}")
+
+        # Find user by email
+        statement = select(User).where(User.email == request.email)
+        result = await session.execute(statement)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            # Don't reveal if email exists for security
+            logger.warning(f"Resend verification failed: User not found - {request.email}")
+            return {
+                "message": "If the email exists, a verification link has been sent"
+            }
+
+        # Check if already verified
+        if user.email_verified:
+            logger.info(f"Email already verified for user: {request.email}")
+            return {
+                "message": "Email is already verified"
+            }
+
+        # Generate new verification token
+        verification_token = secrets.token_urlsafe(32)
+        user.verification_token = verification_token
+        user.updated_at = datetime.utcnow()
+
+        await session.commit()
+
+        # Send verification email
+        try:
+            from main import get_email_service
+            config = get_config()
+            email_service = get_email_service()
+            verification_url = f"{config.frontend_url}/verify-email?token={verification_token}"
+
+            await email_service.send_verification_email(
+                to_email=user.email,
+                verification_url=verification_url
+            )
+            logger.info(f"Verification email resent to: {user.email}")
+        except Exception as e:
+            logger.error(f"Failed to resend verification email to {user.email}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send verification email"
+            )
+
+        return {
+            "message": "Verification email sent successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Resend verification error: {str(e)}")
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while resending verification email"
+        )
 
 
 @router.post("/login")
@@ -176,9 +353,13 @@ async def login_user(login_data: UserLoginRequest, session: AsyncSession = Depen
 
         logger.info(f"Login successful for email: {login_data.email} (user_id: {user.id})")
 
-        # Create JWT token for the user
+        # Create JWT token for the user with email_verified claim
         from core.security.jwt import create_access_token
-        token = create_access_token({"sub": str(user.id), "email": user.email})
+        token = create_access_token({
+            "sub": str(user.id),
+            "email": user.email,
+            "email_verified": user.email_verified
+        })
 
         return {
             "user": {

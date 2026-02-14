@@ -157,6 +157,256 @@ export function validatePassword(password: string): {
   if (password.length < 8) {
     errors.push("Password must be at least 8 characters");
   }
+```
+
+## Phase 3: AI Chatbot Integration (021-ai-chatbot)
+
+### ChatKit Integration
+
+**Library**: @openai/chatkit-react for production-ready chat UI
+
+**Installation**:
+```bash
+npm install @openai/chatkit-react
+```
+
+**Basic ChatInterface Pattern**:
+```typescript
+// components/chat/ChatInterface.tsx
+"use client";
+import { ChatKit, useChatKit } from '@openai/chatkit-react';
+
+export function ChatInterface({ userId }: { userId: string }) {
+  const { control, sendUserMessage } = useChatKit({
+    api: {
+      url: `/api/${userId}/chat`,  // Backend FastAPI endpoint
+      domainKey: 'todolist-chat',
+    },
+    theme: {
+      colorScheme: 'dark',  // Match existing UI
+      radius: 'round',
+    },
+    composer: {
+      placeholder: 'Ask me to manage your tasks...',
+    },
+    onResponseStart: () => console.log('Agent processing...'),
+    onResponseEnd: () => console.log('Agent response complete'),
+    onError: (error) => console.error('Chat error:', error),
+  });
+
+  return (
+    <div className="h-[600px] w-full">
+      <ChatKit control={control} />
+    </div>
+  );
+}
+```
+
+### Email Verification UI Guidelines
+
+**Context**: Phase 3 extends Better Auth (018) with email verification requirement for chat access
+
+**Email Verification Check Pattern**:
+```typescript
+// app/chat/page.tsx
+"use client";
+import { useAuth } from "@/hooks/useAuth";
+import { ChatInterface } from "@/components/chat/ChatInterface";
+import { EmailVerificationPrompt } from "@/components/chat/EmailVerificationPrompt";
+
+export default function ChatPage() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Check email_verified from JWT token
+  if (!user.emailVerified) {
+    return <EmailVerificationPrompt />;
+  }
+
+  return <ChatInterface userId={user.id} />;
+}
+```
+
+**Email Verification Prompt Component**:
+```typescript
+// components/chat/EmailVerificationPrompt.tsx
+"use client";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+export function EmailVerificationPrompt() {
+  const [isResending, setIsResending] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleResendEmail = async () => {
+    setIsResending(true);
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        setMessage("Verification email sent! Check your inbox.");
+      } else {
+        setMessage("Failed to send email. Please try again.");
+      }
+    } catch (error) {
+      setMessage("An error occurred. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="max-w-md p-6 space-y-4">
+        <Alert>
+          <AlertDescription>
+            Please verify your email to use the chatbot. Check your inbox for the verification link.
+          </AlertDescription>
+        </Alert>
+        <Button
+          onClick={handleResendEmail}
+          disabled={isResending}
+          className="w-full"
+        >
+          {isResending ? "Sending..." : "Resend Verification Email"}
+        </Button>
+        {message && <p className="text-sm text-center">{message}</p>}
+      </div>
+    </div>
+  );
+}
+```
+
+### Chat API Client Pattern
+
+**JWT Token Attachment**:
+```typescript
+// lib/chatApi.ts
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+export async function sendChatMessage(
+  userId: string,
+  message: string,
+  conversationId?: string
+): Promise<ChatResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/${userId}/chat`, {
+    method: "POST",
+    credentials: "include", // Send JWT cookie
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message,
+      conversation_id: conversationId,
+    }),
+  });
+
+  if (response.status === 403) {
+    throw new Error("Please verify your email to use the chatbot");
+  }
+
+  if (response.status === 429) {
+    throw new Error("Rate limit exceeded. Please wait a moment.");
+  }
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to send message");
+  }
+
+  return response.json();
+}
+```
+
+### Conversation List Component Pattern
+
+```typescript
+// components/chat/ConversationList.tsx
+"use client";
+import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+
+interface Conversation {
+  id: string;
+  lastMessage: string;
+  updatedAt: string;
+}
+
+export function ConversationList({
+  userId,
+  onSelect
+}: {
+  userId: string;
+  onSelect: (conversationId: string) => void;
+}) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    // Fetch conversations from backend
+    fetch(`/api/${userId}/conversations`, { credentials: "include" })
+      .then(res => res.json())
+      .then(data => setConversations(data))
+      .catch(console.error);
+  }, [userId]);
+
+  return (
+    <div className="space-y-2">
+      {conversations.map(conv => (
+        <button
+          key={conv.id}
+          onClick={() => onSelect(conv.id)}
+          className="w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+        >
+          <p className="text-sm truncate">{conv.lastMessage}</p>
+          <p className="text-xs text-gray-500">
+            {formatDistanceToNow(new Date(conv.updatedAt), { addSuffix: true })}
+          </p>
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### Dark Mode Consistency
+
+**Ensure ChatKit matches existing theme**:
+```typescript
+// Use theme from ThemeProvider
+const { theme } = useTheme();
+
+const { control } = useChatKit({
+  theme: {
+    colorScheme: theme === 'dark' ? 'dark' : 'light',
+    // ... other theme settings
+  },
+});
+```
+
+### Error Handling for Chat
+
+**Handle 403 (unverified email)**:
+- Show EmailVerificationPrompt component
+- Provide clear message and resend button
+
+**Handle 429 (rate limit)**:
+- Show user-friendly message: "You're sending messages too quickly. Please wait a moment."
+- Disable input temporarily
+
+**Handle 500 (server error)**:
+- Show retry button
+- Log error for debugging
   if (!/[A-Z]/.test(password)) {
     errors.push("Password must contain at least one uppercase letter");
   }

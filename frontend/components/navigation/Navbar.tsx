@@ -35,6 +35,12 @@ export default function Navbar() {
                 Dashboard
               </Link>
               <Link
+                href="/chat"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                AI Chat
+              </Link>
+              <Link
                 href="/profile"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >

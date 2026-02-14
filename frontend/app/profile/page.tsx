@@ -78,11 +78,45 @@ export default function ProfilePage() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Email Verification Status
                   </label>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${profile.emailVerified ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800'}`}>
                       {profile.emailVerified ? '✓ Verified' : '⚠ Not Verified'}
                     </span>
+                    {!profile.emailVerified && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('access_token');
+                            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/resend-verification`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                email: profile.email,
+                              }),
+                            });
+                            if (response.ok) {
+                              alert('Verification email sent! Please check your inbox.');
+                            } else {
+                              alert('Failed to send verification email. Please try again.');
+                            }
+                          } catch (error) {
+                            alert('An error occurred. Please try again.');
+                          }
+                        }}
+                        className="text-xs text-primary hover:underline font-medium"
+                      >
+                        Resend Verification Email
+                      </button>
+                    )}
                   </div>
+                  {!profile.emailVerified && (
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      Please verify your email to access all features including the AI chatbot.
+                    </p>
+                  )}
                 </div>
 
                 <div className="pt-2">

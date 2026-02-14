@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { PageTransitionWrapper } from '@/components/animations/PageTransitionWrapper';
+import { ChatWidget } from '@/components/chat/ChatWidget';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
             <PageTransitionWrapper>
               {children}
             </PageTransitionWrapper>
+            <ChatWidget />
           </AuthProvider>
         </ThemeProvider>
       </body>

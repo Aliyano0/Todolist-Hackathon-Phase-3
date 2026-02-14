@@ -34,13 +34,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
     Args:
         data: Dictionary containing claims to encode in the token
+              Should include 'sub' (user_id) and 'email_verified' (bool)
         expires_delta: Optional custom expiration time
 
     Returns:
         Encoded JWT token as string
 
     Example:
-        >>> token = create_access_token({"sub": "user-uuid-here"})
+        >>> token = create_access_token({"sub": "user-uuid-here", "email_verified": True})
         >>> isinstance(token, str)
         True
     """

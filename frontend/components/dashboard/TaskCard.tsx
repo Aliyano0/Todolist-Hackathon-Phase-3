@@ -80,6 +80,7 @@ export interface TaskCardProps {
   onDelete: (taskId: string) => void
   isEditing?: boolean
   isOperating?: boolean
+  taskNumber?: number
 }
 
 const priorityBorderClass = {
@@ -103,7 +104,8 @@ export function TaskCard({
   onEdit,
   onDelete,
   isEditing = false,
-  isOperating = false
+  isOperating = false,
+  taskNumber
 }: TaskCardProps) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -143,14 +145,21 @@ export function TaskCard({
           </button>
 
           <div className="flex-1">
-            <h3
-              className={cn(
-                'text-lg font-semibold mb-1 text-foreground',
-                task.completed && 'line-through'
+            <div className="flex items-center gap-2 mb-1">
+              {taskNumber !== undefined && (
+                <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-primary/10 text-primary rounded-full">
+                  #{taskNumber}
+                </span>
               )}
-            >
-              {task.title}
-            </h3>
+              <h3
+                className={cn(
+                  'text-lg font-semibold text-foreground',
+                  task.completed && 'line-through'
+                )}
+              >
+                {task.title}
+              </h3>
+            </div>
             {task.description && (
               <p className="text-sm text-muted-foreground mb-2">
                 {task.description}

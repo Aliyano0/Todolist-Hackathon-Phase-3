@@ -1,0 +1,229 @@
+openapi: 3.0.3
+info:
+  title: Todo AI Chatbot API
+  description: Chat endpoint for natural language task management
+  version: 1.0.0
+  contact:
+    name: Todo AI Chatbot Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todolist.example.com
+    description: Production server
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send chat message to AI agent
+      description: |
+        Process a user message through the AI agent for task management.
+        Requires JWT authentication with email verification.
+        Enforces rate limit of 10 messages per minute per user.
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: UUID of the authenticated user (must match JWT token)
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              newConversation:
+                summary: Start new conversation
+                value:
+                  message: "Add task: buy groceries"
+              existingConversation:
+                summary: Continue existing conversation
+                value:
+                  conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+                  message: "Show my tasks"
+      responses:
+        '200':
+          description: Successful response from AI agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                taskCreated:
+                  summary: Task created successfully
+                  value:
+                    conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+                    response: "Task added successfully! I've created 'buy groceries' for you."
+                    tool_calls:
+                      - tool: "add_task"
+                        arguments:
+                          user_id: "550e8400-e29b-41d4-a716-446655440000"
+                          title: "buy groceries"
+                        result:
+                          task_id: "770e8400-e29b-41d4-a716-446655440002"
+                          status: "created"
+                          title: "buy groceries"
+                taskListed:
+                  summary: Tasks listed
+                  value:
+                    conversation_id: "660e8400-e29b-41d4-a716-446655440001"
+                    response: "Here are your tasks:\n1. Buy groceries\n2. Finish project report\n3. Call dentist"
+                    tool_calls:
+                      - tool: "list_tasks"
+                        arguments:
+                          user_id: "550e8400-e29b-41d4-a716-446655440000"
+                          status: "all"
+                        result:
+                          - id: "770e8400-e29b-41d4-a716-446655440002"
+                            title: "Buy groceries"
+                            completed: false
+                          - id: "770e8400-e29b-41d4-a716-446655440003"
+                            title: "Finish project report"
+                            completed: false
+                          - id: "770e8400-e29b-41d4-a716-446655440004"
+                            title: "Call dentist"
+                            completed: false
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: "Invalid authentication credentials"
+        '403':
+          description: Forbidden - Email not verified or user ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                emailNotVerified:
+                  summary: Email not verified
+                  value:
+                    detail: "Please verify your email to use the chatbot. Check your inbox for the verification link."
+                userIdMismatch:
+                  summary: User ID mismatch
+                  value:
+                    detail: "User ID in path does not match authenticated user"
+        '429':
+          description: Too Many Requests - Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: "Rate limit exceeded. Maximum 10 messages per minute."
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                detail: "An error occurred processing your message. Please try again."
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token issued by Better Auth.
+        Token must include:
+        - sub: user_id (UUID)
+        - email_verified: boolean (must be true)
+        - exp: expiration timestamp
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: |
+            UUID of existing conversation to continue.
+            Omit to start a new conversation.
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User's message in natural language (English, Roman Urdu, or Urdu)
+          example: "Add task: buy groceries"
+
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - response
+        - tool_calls
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: UUID of the conversation (new or existing)
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        response:
+          type: string
+          description: AI agent's response in the detected language
+          example: "Task added successfully! I've created 'buy groceries' for you."
+        tool_calls:
+          type: array
+          description: List of MCP tools invoked during processing
+          items:
+            $ref: '#/components/schemas/ToolCall'
+
+    ToolCall:
+      type: object
+      required:
+        - tool
+        - arguments
+        - result
+      properties:
+        tool:
+          type: string
+          enum:
+            - add_task
+            - list_tasks
+            - complete_task
+            - delete_task
+            - update_task
+          description: Name of the MCP tool invoked
+          example: "add_task"
+        arguments:
+          type: object
+          description: Arguments passed to the tool
+          example:
+            user_id: "550e8400-e29b-41d4-a716-446655440000"
+            title: "buy groceries"
+        result:
+          type: object
+          description: Result returned by the tool
+          example:
+            task_id: "770e8400-e29b-41d4-a716-446655440002"
+            status: "created"
+            title: "buy groceries"
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Please verify your email to use the chatbot."

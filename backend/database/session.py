@@ -87,6 +87,24 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+def get_async_session():
+    """
+    Context manager to get database session for non-FastAPI code (services, MCP tools)
+
+    Usage:
+        async with get_async_session() as session:
+            result = await session.execute(select(Item))
+            items = result.scalars().all()
+
+    Returns:
+        Async context manager that yields AsyncSession
+    """
+    if not async_session_maker:
+        raise ValueError("Database not configured. Set DATABASE_URL environment variable.")
+
+    return async_session_maker()
+
+
 async def create_db_and_tables():
     """
     Create database tables - should be called on startup
