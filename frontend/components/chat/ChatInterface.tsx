@@ -112,6 +112,11 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
     try {
       const response = await sendChatMessage(userId, userMessage, conversationId);
 
+      // Debug logging
+      console.log("Chat API Response:", response);
+      console.log("Response message:", response.message);
+      console.log("Response type:", typeof response.message);
+
       // Save conversation ID for subsequent messages
       if (!conversationId) {
         setConversationId(response.conversation_id);
@@ -123,6 +128,7 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
         content: response.message,
         timestamp: response.timestamp,
       };
+      console.log("Assistant message object:", assistantMessage);
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Emit events for real-time updates
