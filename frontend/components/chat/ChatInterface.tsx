@@ -73,12 +73,11 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
     return () => window.removeEventListener("chatUpdated", handleChatUpdate);
   }, [userId]);
 
-  // Save chat history to localStorage whenever messages or conversationId change
+  // Save chat history to localStorage whenever messages change
+  // Note: Event emission happens only in handleSendMessage to avoid infinite loops
   useEffect(() => {
     if (userId && messages.length > 0) {
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
-      // Emit event to notify other components
-      window.dispatchEvent(new CustomEvent("chatUpdated"));
     }
   }, [messages, userId]);
 
