@@ -27,6 +27,7 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const shouldEmitEventRef = useRef(false);
 
   // Load chat history from localStorage on mount
   useEffect(() => {
@@ -74,7 +75,7 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   }, [userId]);
 
   // Save chat history to localStorage whenever messages change
-  // Emit chatUpdated event AFTER saving to ensure other components get the latest data
+  // Only emit chatUpdated event when shouldEmitEventRef is true (after new message from API)
   useEffect(() => {
     console.log("Messages state changed:", messages.length, "messages");
     console.log("Messages array:", messages);
@@ -82,9 +83,13 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
       console.log("Saving to localStorage with key:", `${STORAGE_KEY_PREFIX}messages_${userId}`);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
       console.log("Saved to localStorage successfully");
-      // Emit event AFTER saving to localStorage
-      window.dispatchEvent(new CustomEvent("chatUpdated"));
-      console.log("Emitted chatUpdated event");
+
+      // Only emit event if this was triggered by a new message (not by loading from storage)
+      if (shouldEmitEventRef.current) {
+        window.dispatchEvent(new CustomEvent("chatUpdated"));
+        console.log("Emitted chatUpdated event");
+        shouldEmitEventRef.current = false; // Reset flag
+      }
     } else {
       console.log("Not saving - userId:", userId, "messages.length:", messages.length);
     }
@@ -138,10 +143,12 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
         timestamp: response.timestamp,
       };
       console.log("Assistant message object:", assistantMessage);
+
+      // Set flag to emit chatUpdated event after localStorage save
+      shouldEmitEventRef.current = true;
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Emit taskUpdated event for task list UI refresh
-      // Note: chatUpdated event is emitted in useEffect after localStorage save
       window.dispatchEvent(new CustomEvent("taskUpdated"));
     } catch (err) {
       if (err instanceof ChatApiError) {
