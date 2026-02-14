@@ -76,8 +76,14 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   // Save chat history to localStorage whenever messages change
   // Note: Event emission happens only in handleSendMessage to avoid infinite loops
   useEffect(() => {
+    console.log("Messages state changed:", messages.length, "messages");
+    console.log("Messages array:", messages);
     if (userId && messages.length > 0) {
+      console.log("Saving to localStorage with key:", `${STORAGE_KEY_PREFIX}messages_${userId}`);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
+      console.log("Saved to localStorage successfully");
+    } else {
+      console.log("Not saving - userId:", userId, "messages.length:", messages.length);
     }
   }, [messages, userId]);
 

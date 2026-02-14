@@ -77,8 +77,14 @@ export function ChatWidget() {
   // Save chat history to localStorage whenever messages change
   // Note: Event emission happens only in handleSendMessage to avoid infinite loops
   useEffect(() => {
+    console.log("Messages state changed:", messages.length, "messages");
+    console.log("Messages array:", messages);
     if (user?.id && messages.length > 0) {
+      console.log("Saving to localStorage with key:", `${STORAGE_KEY_PREFIX}messages_${user.id}`);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${user.id}`, JSON.stringify(messages));
+      console.log("Saved to localStorage successfully");
+    } else {
+      console.log("Not saving - user.id:", user?.id, "messages.length:", messages.length);
     }
   }, [messages, user?.id]);
 
