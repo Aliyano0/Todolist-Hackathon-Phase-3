@@ -77,21 +77,14 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   // Save chat history to localStorage whenever messages change
   // Only emit chatUpdated event when shouldEmitEventRef is true (after new message from API)
   useEffect(() => {
-    console.log("Messages state changed:", messages.length, "messages");
-    console.log("Messages array:", messages);
     if (userId && messages.length > 0) {
-      console.log("Saving to localStorage with key:", `${STORAGE_KEY_PREFIX}messages_${userId}`);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}messages_${userId}`, JSON.stringify(messages));
-      console.log("Saved to localStorage successfully");
 
       // Only emit event if this was triggered by a new message (not by loading from storage)
       if (shouldEmitEventRef.current) {
         window.dispatchEvent(new CustomEvent("chatUpdated"));
-        console.log("Emitted chatUpdated event");
         shouldEmitEventRef.current = false; // Reset flag
       }
-    } else {
-      console.log("Not saving - userId:", userId, "messages.length:", messages.length);
     }
   }, [messages, userId]);
 
@@ -126,11 +119,6 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
     try {
       const response = await sendChatMessage(userId, userMessage, conversationId);
 
-      // Debug logging
-      console.log("Chat API Response:", response);
-      console.log("Response message:", response.message);
-      console.log("Response type:", typeof response.message);
-
       // Save conversation ID for subsequent messages
       if (!conversationId) {
         setConversationId(response.conversation_id);
@@ -142,7 +130,6 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
         content: response.message,
         timestamp: response.timestamp,
       };
-      console.log("Assistant message object:", assistantMessage);
 
       // Set flag to emit chatUpdated event after localStorage save
       shouldEmitEventRef.current = true;
